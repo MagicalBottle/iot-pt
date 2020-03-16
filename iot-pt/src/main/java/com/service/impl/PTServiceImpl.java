@@ -21,6 +21,7 @@ public class PTServiceImpl implements PTService {
     @Value("${pt.server.path}")
     private String parentPath;
 
+
     /**
     *   @desc : 注册netty服务到zk
     *   @auth : TYF

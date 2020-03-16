@@ -1,9 +1,11 @@
 package com.netty;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.service.ClientService;
 import com.service.LimiterService;
 import com.service.MsgService;
+import com.service.impl.MsgServiceImpl;
 import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,13 +81,8 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         logger.info("上行消息 "+msg+",channelId "+ctx.channel().id());
-        ctx.close();
-        if(!limiterService.tryChannelAcquire(ctx.channel())){
-            logger.info("达到客户端消息流量限制"+new Date());
-        }
-        if(!limiterService.tryGlobalAcquire()){
-            logger.info("达到全局消息流量限制"+new Date());
-        }
+        MsgServiceImpl.msgExecutor.execute(()->msgService.msgHandler(ctx.channel(),msg));
+        return;
     }
 
 

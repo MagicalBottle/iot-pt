@@ -37,7 +37,7 @@ public class LimiterServiceImpl implements LimiterService {
     private static Map<Channel,RateLimiter> channelLimiter = new ConcurrentHashMap<>();
 
     /**
-    *   @desc : 全局客户端消息限流
+    *   @desc : 全局客户端消息限流(心跳和登陆除外)
     *   @auth : TYF
     *   @date : 2020-03-16 - 14:13
     */
@@ -51,13 +51,12 @@ public class LimiterServiceImpl implements LimiterService {
     }
 
     /**
-    *   @desc : 单独客户端消息限流
+    *   @desc : 单独客户端消息限流(心跳和登陆除外)
     *   @auth : TYF
     *   @date : 2020-03-16 - 14:13
     */
     @Override
     public boolean tryChannelAcquire(Channel channel) {
-        //新客户端需要先创建限流器
         if(channelLimiter.get(channel)==null){
             logger.info("单独客户端消息每秒限制"+channelCount+"条");
             channelLimiter.put(channel,RateLimiter.create(channelCount));
