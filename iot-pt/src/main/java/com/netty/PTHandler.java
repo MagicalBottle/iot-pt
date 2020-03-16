@@ -1,52 +1,66 @@
 package com.netty;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 
-/***
- * 服务端自定义业务处理handler
- */
-public class PTHandler extends ChannelInboundHandlerAdapter {
+import io.netty.channel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    /**
-     * 对每一个传入的消息都要调用；
-     * @param ctx
-     * @param msg
-     * @throws Exception
-     */
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+/**
+*   @desc : 业务消息处理
+*   @auth : TYF
+*   @date : 2020-03-16 - 11:16
+*/
+@ChannelHandler.Sharable
+public class PTHandler extends SimpleChannelInboundHandler<String> {
 
-        ByteBuf in = (ByteBuf) msg;
-        System.out.println("server received: "+in.toString(CharsetUtil.UTF_8));
-
-        ctx.write(in);
-    }
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
     /**
-     * 通知ChannelInboundHandler最后一次对channelRead()的调用时当前批量读取中的的最后一条消息。
-     * @param ctx
-     * @throws Exception
-     */
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-    }
-
-    /**
-     * 在读取操作期间，有异常抛出时会调用。
-     * @param ctx
-     * @param cause
-     * @throws Exception
+     *   @desc : 客户端异常退出连接
+     *   @auth : TYF
+     *   @date : 2020-03-16 - 11:21
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.info("客户端异常退出连接:"+ctx.channel().remoteAddress().toString());
         cause.printStackTrace();
         ctx.close();
     }
+
+    /**
+    *   @desc : 客户端主动连接
+    *   @auth : TYF
+    *   @date : 2020-03-16 - 11:21
+    */
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("客户端主动连接:"+ctx.channel().remoteAddress().toString());
+        ctx.fireChannelActive();
+        ctx.flush();
+    }
+
+
+    /**
+     *   @desc : 客户端主动退出连接
+     *   @auth : TYF
+     *   @date : 2020-03-16 - 11:21
+     */
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("客户端主动退出连接:"+ctx.channel().remoteAddress().toString());
+        super.channelInactive(ctx);
+    }
+
+    /**
+     *   @desc : 上行消息丢给线程池处理
+     *   @auth : TYF
+     *   @date : 2020-03-16 - 11:17
+     */
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+        logger.info("上行消息 "+msg);
+    }
+
+
 }

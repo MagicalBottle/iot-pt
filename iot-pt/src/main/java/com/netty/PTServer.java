@@ -10,12 +10,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 
 
 @Component
@@ -49,21 +53,30 @@ public class PTServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(serverHandler);
+                            socketChannel.pipeline()
+                                    //解决TCP拆包
+                                    .addLast(new LineBasedFrameDecoder(1024))
+                                    //客户端消息编码
+                                    .addLast(new StringDecoder(Charset.forName("UTF-8")))
+                                    //客户端35s无新消息踢掉连接
+                                    .addLast(new ReadTimeoutHandler(35))
+                                    //业务消息处理
+                                    .addLast(serverHandler);
                         }
                     });
             f = b.bind().sync();
             channel = f.channel();
-            logger.info("netty start ..");
+            channel.closeFuture().sync();
+            logger.info("netty开始启动 ..");
         } catch (Exception e) {
             e.printStackTrace();
-            logger.info("netty start fail ..");
+            logger.info("netty启动失败 ..");
         } finally {
             if (f != null && f.isSuccess()) {
-                logger.info("netty start success .. ");
+                logger.info("netty启动成功 .. ");
                 registry();
             } else {
-                logger.info("netty start fail ..");
+                logger.info("netty启动失败 ..");
             }
         }
         return f;
@@ -76,13 +89,13 @@ public class PTServer {
     *   @date : 2020/3/15 - 14:43
     */
     public void destroy() {
-        logger.info("netty destory start ..");
+        logger.info("netty开始销毁 ..");
         if(channel != null) {
             channel.close();
         }
         workerGroup.shutdownGracefully();
         bossGroup.shutdownGracefully();
-        logger.info("netty destory success ..");
+        logger.info("netty销毁成功 ..");
     }
 
 
@@ -96,10 +109,10 @@ public class PTServer {
             try {
                 String addr = IPUtil.getLocalHostIp();
                 registryService.registryToZk(addr,port);
-                logger.info("registry to zookeeper success ..");
+                logger.info("netty注册成功 ..");
             }catch (Exception e){
                 e.printStackTrace();
-                logger.info("registry to zookeeper fail ..");
+                logger.info("netty注册失败 ..");
             }
         }).start();
     }

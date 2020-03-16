@@ -20,7 +20,12 @@ public class zkConfig {
     @Value("${zk.address}")
     private String address;
 
-    
+    @Value("${zk.session.timeout}")
+    private int sessionTimeout;
+
+    @Value("${zk.connect.timeout}")
+    private int connectionTimeout;
+
     /**
     *   @desc : zk会话创建
     *   @auth : TYF
@@ -30,7 +35,8 @@ public class zkConfig {
     public CuratorFramework getCuratorFramework(){
         //连接重试
         RetryPolicy retryPolicy = new RetryForever(500);
-        CuratorFramework client = CuratorFrameworkFactory.newClient(address,retryPolicy);
+        //会话超时时间尽量小保证临时节点即时删除
+        CuratorFramework client = CuratorFrameworkFactory.newClient(address,sessionTimeout,connectionTimeout,retryPolicy);
         client.start();
         if(client.isStarted()){
             logger.info("zookeeper session create success ..");
