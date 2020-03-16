@@ -39,9 +39,9 @@ public class zkConfig {
         CuratorFramework client = CuratorFrameworkFactory.newClient(address,sessionTimeout,connectionTimeout,retryPolicy);
         client.start();
         if(client.isStarted()){
-            logger.info("zookeeper session create success ..");
+            logger.info("zookeeper会话创建成功 ..");
         }else {
-            logger.info("zookeeper session create fail ..");
+            logger.info("zookeeper会话创建失败 ..");
         }
         return client;
     }

@@ -20,14 +20,24 @@ public class RouterServiceImpl implements RouterService {
     private CuratorFramework zkClient;
 
     /**
-    *   @desc : 获取在线sensor节点
+    *   @desc : 获取所有在线pt节点
     *   @auth : TYF
     *   @date : 2020/3/15 - 19:02
     */
     @Override
-    public List<String> getOnlineAllSensor() throws Exception{
+    public List<String> getAllOnlinePT() throws Exception{
         logger.info("current online nodes: "+new String(zkClient.getData().storingStatIn(new Stat()).forPath("/zk/nodes")));
         return null;
     }
 
+
+    /**
+    *   @desc : 获取一个在线节点
+    *   @auth : TYF
+    *   @date : 2020-03-16 - 16:35
+    */
+    @Override
+    public String getOneOnlinePT() throws Exception {
+        return null;
+    }
 }
