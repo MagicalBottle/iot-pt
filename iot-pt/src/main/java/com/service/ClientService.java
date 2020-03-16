@@ -11,4 +11,6 @@ public interface ClientService {
 
     Channel loadClient();
 
+    void msgResp(Channel channel,String msg);
+
 }

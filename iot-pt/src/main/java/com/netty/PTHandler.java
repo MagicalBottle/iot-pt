@@ -1,9 +1,5 @@
 package com.netty;
 
-
-import com.alibaba.fastjson.JSONObject;
-import com.service.ClientService;
-import com.service.LimiterService;
 import com.service.MsgService;
 import com.service.impl.MsgServiceImpl;
 import io.netty.channel.*;
@@ -12,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 
 /**
 *   @desc : 业务消息处理
@@ -24,14 +19,6 @@ import java.util.Date;
 public class PTHandler extends SimpleChannelInboundHandler<String> {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    //消息限流器
-    @Autowired
-    private LimiterService limiterService;
-
-    //客户端处理器
-    @Autowired
-    private ClientService clientService;
 
     //消息处理器
     @Autowired
@@ -80,7 +67,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-        logger.info("上行消息 "+msg+",channelId "+ctx.channel().id());
+        logger.info("上行消息 "+msg);
         MsgServiceImpl.msgExecutor.execute(()->msgService.msgHandler(ctx.channel(),msg));
         return;
     }
