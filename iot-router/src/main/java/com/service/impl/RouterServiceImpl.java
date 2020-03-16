@@ -1,15 +1,15 @@
 package com.service.impl;
 
 import com.service.RouterService;
+import com.utils.redis.RedisDao;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class RouterServiceImpl implements RouterService {
@@ -18,6 +18,9 @@ public class RouterServiceImpl implements RouterService {
 
     @Autowired
     private CuratorFramework zkClient;
+
+    @Autowired
+    private RedisDao redisDao;
 
     /**
     *   @desc : 获取所有在线pt节点
@@ -32,12 +35,25 @@ public class RouterServiceImpl implements RouterService {
 
 
     /**
-    *   @desc : 获取一个在线节点
+    *   @desc : 获取一个在线pt节点
     *   @auth : TYF
     *   @date : 2020-03-16 - 16:35
     */
     @Override
     public String getOneOnlinePT() throws Exception {
-        return null;
+        return "xxxx";
+    }
+
+
+    /**
+    *   @desc : 获取并缓存一个token
+    *   @auth : TYF
+    *   @date : 2020/3/16 - 23:46
+    */
+    @Override
+    public String getCachedToken(String deviceId) {
+        String token = UUID.randomUUID().toString();
+        redisDao.setString(token,deviceId,30);//30秒过期
+        return token;
     }
 }

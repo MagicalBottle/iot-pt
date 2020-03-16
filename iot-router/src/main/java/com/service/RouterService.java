@@ -8,4 +8,6 @@ public interface RouterService {
 
     String getOneOnlinePT() throws Exception;
 
+    String getCachedToken(String deviceId);
+
 }
