@@ -4,6 +4,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.retry.RetryForever;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -28,7 +29,7 @@ public class zkConfig {
     @Bean
     public CuratorFramework getCuratorFramework(){
         //连接重试
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
+        RetryPolicy retryPolicy = new RetryForever(500);
         CuratorFramework client = CuratorFrameworkFactory.newClient(address,retryPolicy);
         client.start();
         if(client.isStarted()){

@@ -10,7 +10,7 @@ import io.netty.util.CharsetUtil;
 /***
  * 服务端自定义业务处理handler
  */
-public class SensorHandler extends ChannelInboundHandlerAdapter {
+public class PTHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * 对每一个传入的消息都要调用；

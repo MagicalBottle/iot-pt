@@ -1,6 +1,6 @@
 package com.service.impl;
 
-import com.service.SensorRegistryService;
+import com.service.PTService;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SensorRegistryServiceImpl implements SensorRegistryService {
+public class PTServiceImpl implements PTService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 

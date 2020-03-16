@@ -1,6 +1,6 @@
 package com.netty;
 
-import com.service.SensorRegistryService;
+import com.service.PTService;
 import com.utils.IPUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -19,12 +19,12 @@ import java.net.InetSocketAddress;
 
 
 @Component
-public class SensorServer {
+public class PTServer {
 
     @Value("${netty.port}")
     private int port;
     @Autowired
-    private SensorRegistryService registryService;
+    private PTService registryService;
 
     private  Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -39,7 +39,7 @@ public class SensorServer {
     */
     public ChannelFuture start() throws Exception {
 
-        final SensorHandler serverHandler = new SensorHandler();
+        final PTHandler serverHandler = new PTHandler();
         ChannelFuture f = null;
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -86,17 +86,22 @@ public class SensorServer {
     }
 
 
+    /**
+    *   @desc : 注册到zk上去
+    *   @auth : TYF
+    *   @date : 2020-03-16 - 10:10
+    */
     public void registry(){
-        logger.info("registry to zookeeper ..");
-        try {
-            String addr = IPUtil.getLocalHostIp();
-            logger.info(addr+":"+port);
-            registryService.registryToZk(addr,port);
-            logger.info("registry to zookeeper success ..");
-        }catch (Exception e){
-            e.printStackTrace();
-            logger.info("registry to zookeeper fail ..");
-        }
+        new Thread(()->{
+            try {
+                String addr = IPUtil.getLocalHostIp();
+                registryService.registryToZk(addr,port);
+                logger.info("registry to zookeeper success ..");
+            }catch (Exception e){
+                e.printStackTrace();
+                logger.info("registry to zookeeper fail ..");
+            }
+        }).start();
     }
 
 }

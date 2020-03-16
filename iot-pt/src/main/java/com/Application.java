@@ -1,6 +1,6 @@
 package com;
 
-import com.netty.SensorServer;
+import com.netty.PTServer;
 import io.netty.channel.ChannelFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Application implements CommandLineRunner {
 
     @Autowired
-    private SensorServer sensorServer;
+    private PTServer PTServer;
 
     /**
     *   @desc : netty跟随sptinrboot启动
@@ -20,9 +20,9 @@ public class Application implements CommandLineRunner {
     */
     @Override
     public void run(String... args) throws Exception {
-        ChannelFuture future = sensorServer.start();
+        ChannelFuture future = PTServer.start();
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
-            sensorServer.destroy();
+            PTServer.destroy();
         }));
         future.channel().closeFuture().syncUninterruptibly();
     }

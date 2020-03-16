@@ -1,6 +1,6 @@
 package com.service;
 
-public interface SensorRegistryService {
+public interface PTService {
 
     void registryToZk(String host,int port) throws Exception;
 
