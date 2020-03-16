@@ -2,6 +2,8 @@ package com;
 
 import com.netty.PTServer;
 import io.netty.channel.ChannelFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -9,6 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class Application implements CommandLineRunner {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private PTServer PTServer;
@@ -22,9 +26,10 @@ public class Application implements CommandLineRunner {
     public void run(String... args) throws Exception {
         ChannelFuture future = PTServer.start();
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
+            logger.info("进入jvm关闭钩子");
             PTServer.destroy();
         }));
-        future.channel().closeFuture().syncUninterruptibly();
+        future.channel().closeFuture().sync();
     }
 
     public static void main(String[] args) {

@@ -28,7 +28,9 @@ public class PTServer {
     @Value("${netty.port}")
     private int port;
     @Autowired
-    private PTService registryService;
+    private PTService ptService;
+    @Autowired
+    private PTHandler ptHandler;
 
     private  Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -43,7 +45,6 @@ public class PTServer {
     */
     public ChannelFuture start() throws Exception {
 
-        final PTHandler serverHandler = new PTHandler();
         ChannelFuture f = null;
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -56,17 +57,16 @@ public class PTServer {
                             socketChannel.pipeline()
                                     //解决TCP拆包
                                     .addLast(new LineBasedFrameDecoder(1024))
-                                    //客户端消息编码
+                                    //客户端消息反序列化
                                     .addLast(new StringDecoder(Charset.forName("UTF-8")))
                                     //客户端35s无新消息踢掉连接
                                     .addLast(new ReadTimeoutHandler(35))
                                     //业务消息处理
-                                    .addLast(serverHandler);
+                                    .addLast(ptHandler);
                         }
                     });
             f = b.bind().sync();
             channel = f.channel();
-            channel.closeFuture().sync();
             logger.info("netty开始启动 ..");
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,7 +108,7 @@ public class PTServer {
         new Thread(()->{
             try {
                 String addr = IPUtil.getLocalHostIp();
-                registryService.registryToZk(addr,port);
+                ptService.registryToZk(addr,port);
                 logger.info("netty注册成功 ..");
             }catch (Exception e){
                 e.printStackTrace();
