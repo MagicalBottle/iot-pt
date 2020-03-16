@@ -58,7 +58,7 @@ public class LimiterServiceImpl implements LimiterService {
     @Override
     public boolean tryChannelAcquire(Channel channel) {
         if(channelLimiter.get(channel)==null){
-            logger.info("单独客户端消息每秒限制"+channelCount+"条");
+            logger.info("单个客户端消息每秒限制"+channelCount+"条");
             channelLimiter.put(channel,RateLimiter.create(channelCount));
         }
         return channelLimiter.get(channel).tryAcquire();
