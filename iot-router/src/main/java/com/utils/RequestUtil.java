@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * @desc : 请求解析工具
