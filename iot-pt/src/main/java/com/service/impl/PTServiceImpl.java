@@ -3,6 +3,7 @@ package com.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.service.ClientService;
 import com.service.LimiterService;
+import com.service.MsgService;
 import com.service.PTService;
 import com.utils.CommonMsgResult;
 import com.utils.StringUtils;
@@ -34,9 +35,9 @@ public class PTServiceImpl implements PTService {
     @Autowired
     private LimiterService limiterService;
 
-    //客户端处理器
+    //消息处理器
     @Autowired
-    private ClientService clientService;
+    private MsgService msgService;
 
     //消息处理线程池
     //消息数约1秒3000条
@@ -88,7 +89,12 @@ public class PTServiceImpl implements PTService {
         //空消息
         if(msg==null||"".equals(msg)){
             logger.info("客户端消息为空");
-            clientService.clientError(channel,"客户端消息为空",msg);
+            msgService.clientError(channel,"客户端消息为空",msg);
+            return;
+        }
+        //心跳
+        if(msg.contains("0x11")){
+            msgService.clientHeart(channel,msg);
             return;
         }
         //消息协全部为json串
@@ -98,50 +104,41 @@ public class PTServiceImpl implements PTService {
         }
         catch (Exception e){
             logger.info("消息格式非标准json");
-            clientService.clientError(channel,"消息格式非标准json",msg);
+            msgService.clientError(channel,"消息格式非标准json",msg);
             return;
         }
         //消息限流
         if(!limiterService.tryGlobalAcquire()){
             logger.info("触发全局限流,请重试");
-            clientService.clientError(channel,"触发全局限流,请重试",msg);
+            msgService.clientError(channel,"触发全局限流,请重试",msg);
             return;
         }
         if(!limiterService.tryChannelAcquire(channel)){
             logger.info("触发客户端消息限流,请重试");
-            clientService.clientError(channel,"触发客户端消息限流,请重试",msg);
+            msgService.clientError(channel,"触发客户端消息限流,请重试",msg);
             return;
         }
 
-        //公共必传字段
+        //公共字段
         String serviceName = jObj.getString("service_name");//命令
         String clientId = jObj.getString("client_id");//客户端编号
-        String actionId = jObj.getString("action_id");//交互ID,同步响应时匹配上下行,异步交互可不传
 
         //消息异常
         if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){
-            logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId+",actionId="+actionId);
-            clientService.clientError(channel,"缺少必传字段",msg);
+            logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId);
+            msgService.clientError(channel,"缺少必传字段",msg);
             return;
         }
 
         //登陆
         if("login".equals(serviceName)){
-            clientService.clientLogin(channel,msg);
-            return;
-        }
-
-        //心跳
-        else if(serviceName.contains("0x11")){
-            clientService.clientHeart(channel,msg);
-            return;
+            msgService.clientLogin(channel,jObj);
         }
         //其他消息转发给业务程序
         else{
-            clientService.clientMsgReSend(channel,msg);
-            return;
+            msgService.clientMsgReSend(channel,jObj);
         }
-
+        return;
 
     }
 

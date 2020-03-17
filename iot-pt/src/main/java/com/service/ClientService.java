@@ -1,25 +1,20 @@
 package com.service;
 
+
 import io.netty.channel.Channel;
 
 public interface ClientService {
 
+    String loadClientId(Channel channel);
 
-    void saveClient();
+    void saveChannel(Channel channel,String clientId);
 
-    void removeClient();
+    Channel loadChannel(String clientId);
 
-    Channel loadClient();
+    void deleteChannel(String clientId);
 
-    void clientError(Channel channel, String msg,String data);
+    void deleteChannel(Channel channel);
 
-    void clientLogin(Channel channel, String msg);
-
-    void clientHeart(Channel channel, String msg);
-
-    void clientMsgReSend(Channel channel,String msg);
-
-    void msgResp(Channel channel,String msg);
 
 
 
