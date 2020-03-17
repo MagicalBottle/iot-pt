@@ -1,7 +1,7 @@
 package com.netty;
 
-import com.service.MsgService;
-import com.service.impl.MsgServiceImpl;
+import com.service.PTService;
+import com.service.impl.PTServiceImpl;
 import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +20,8 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    //消息处理器
     @Autowired
-    private MsgService msgService;
+    private PTService ptService;
 
     /**
      *   @desc : 客户端异常退出连接
@@ -67,9 +66,8 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-        logger.info("上行消息 "+msg);
-        MsgServiceImpl.msgExecutor.execute(()->{
-            msgService.msgExecute(ctx.channel(),msg);
+        PTServiceImpl.msgExecutor.execute(()->{
+            ptService.msgExecute(ctx.channel(),msg);
         });
         return;
     }
