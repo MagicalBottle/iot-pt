@@ -1,13 +1,14 @@
 package com.service;
 
-import java.util.List;
+
+import java.util.Map;
 
 public interface RouterService {
 
-    List<String> getAllOnlinePT();
+    Map<Integer,String> getAllOnlinePT();
 
     String getOneOnlinePT() throws Exception;
 
-    String getCachedToken(String clientId);
+    String getCachedToken(Long clientId);
 
 }

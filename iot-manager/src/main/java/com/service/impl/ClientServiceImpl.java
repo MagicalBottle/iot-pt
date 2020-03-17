@@ -36,4 +36,12 @@ public class ClientServiceImpl implements ClientService{
     public int query(ClientTb clientTb) {
         return 0;
     }
+
+
+    @Override
+    public ClientTb queryById(Long id) {
+        ClientTb con = new ClientTb();
+        con.setId(id);
+        return (ClientTb)commonDao.selectObjectByConditions(con);
+    }
 }

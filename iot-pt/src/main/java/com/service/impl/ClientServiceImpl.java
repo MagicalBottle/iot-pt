@@ -25,6 +25,10 @@ public class ClientServiceImpl implements ClientService {
     //通道缓存
     private static Map<Channel,String> channelMap = new ConcurrentHashMap<>();
 
+    public static Map<Channel, String> getChannelMap() {
+        return channelMap;
+    }
+
     /**
     *   @desc : 缓存客户端通道
     *   @auth : TYF
@@ -82,4 +86,8 @@ public class ClientServiceImpl implements ClientService {
         }
         return;
     }
+
+
+
+
 }

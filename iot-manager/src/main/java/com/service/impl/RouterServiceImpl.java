@@ -10,11 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.*;
 
 @Service
 public class RouterServiceImpl implements RouterService {
@@ -38,18 +34,23 @@ public class RouterServiceImpl implements RouterService {
     *   @date : 2020/3/15 - 19:02
     */
     @Override
-    public List<String> getAllOnlinePT(){
-        List<String> nodes = new ArrayList<>();
-        //获取所有节点
+    public Map<Integer,String> getAllOnlinePT(){
+        Map<Integer,String> res = new TreeMap<>();
         try {
-            zkClient.getChildren().forPath(parentPath).stream().forEach(n->{
-                nodes.add(n);
+            //获取所有节点
+            zkClient.getChildren().forPath(parentPath).stream().forEach(node->{
+                try {
+                    //分别读取节点值
+                    Integer count = Integer.valueOf(new String(zkClient.getData().storingStatIn(new Stat()).forPath(parentPath+"/"+node)));
+                    res.put(count,node);
+                }catch (Exception e){
+                    logger.info("获取所有节点失败");
+                }
             });
         }catch (Exception e){
                logger.info("获取所有节点失败");
         }
-        logger.info("当前在线节点 "+Arrays.toString(nodes.toArray()));
-        return nodes;
+        return res;
     }
 
 
@@ -60,8 +61,13 @@ public class RouterServiceImpl implements RouterService {
     */
     @Override
     public String getOneOnlinePT() throws Exception {
-        List<String> nodes = this.getAllOnlinePT();
-        return nodes.get(nodes.size()-1);
+        //所有节点
+        Map<Integer,String> nodes = this.getAllOnlinePT();
+        //最小负载节点
+        Integer key = Collections.min(nodes.keySet());
+        String host = nodes.get(key);
+        logger.info("当前最小负载节点"+host+"客户端"+key+"个");
+        return host;
     }
 
 
@@ -71,9 +77,9 @@ public class RouterServiceImpl implements RouterService {
     *   @date : 2020/3/16 - 23:46
     */
     @Override
-    public String getCachedToken(String clientId) {
+    public String getCachedToken(Long clientId) {
         String token = UUID.randomUUID().toString();
-        redisDao.setString(tokenPrefix+token,clientId,60);//60秒过期
+        redisDao.setString(tokenPrefix+token,String.valueOf(clientId),60);//60秒过期
         return token;
     }
 }

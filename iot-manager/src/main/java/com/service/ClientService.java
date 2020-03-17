@@ -12,4 +12,6 @@ public interface ClientService {
 
     int query(ClientTb clientTb);
 
+    ClientTb queryById(Long id);
+
 }

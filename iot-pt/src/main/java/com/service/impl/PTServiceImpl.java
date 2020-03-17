@@ -28,8 +28,7 @@ public class PTServiceImpl implements PTService {
     *   @date : 2020/3/15 - 15:21
     */
     @Override
-    public void registryToZk(String host, int port) throws Exception{
-
+    public void registryToZk(String host,int port) throws Exception{
         String addr = host+":"+port;
         String childNode = parentPath+"/"+addr;
         zkClient.create()
@@ -38,9 +37,21 @@ public class PTServiceImpl implements PTService {
                 //子节点为临时节点,zk会话断开自动清除
                 .withMode(CreateMode.EPHEMERAL)
                 //节点
-                .forPath(childNode,"online".getBytes());
+                .forPath(childNode,"0".getBytes());
         logger.info("当前在线节点:"+zkClient.getChildren().forPath(parentPath));
     }
 
 
+    /**
+    *   @desc : 当前netty节点,客户端数量上报
+    *   @auth : TYF
+    *   @date : 2020-03-17 - 13:09
+    */
+    @Override
+    public void clientCountReport(String host,int port,int count) throws Exception {
+        String addr = host+":"+port;
+        String childNode = parentPath+"/"+addr;
+        zkClient.setData().forPath(childNode,String.valueOf(count).getBytes());
+        logger.info("上报当前节点客户端数量" +addr+",count="+count);
+    }
 }

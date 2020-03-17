@@ -1,6 +1,7 @@
 package com.netty;
 
 import com.service.PTService;
+import com.service.impl.ClientServiceImpl;
 import com.utils.IPUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -20,6 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 @Component
@@ -74,7 +77,8 @@ public class PTServer {
         } finally {
             if (f != null && f.isSuccess()) {
                 logger.info("netty启动成功 .. ");
-                registry();
+                registry();//注册到zk
+                clientCountReport();//定时上报客户端数量
             } else {
                 logger.info("netty启动失败 ..");
             }
@@ -116,5 +120,31 @@ public class PTServer {
             }
         }).start();
     }
+
+
+    /**
+    *   @desc : 客户端数量定时上报
+    *   @auth : TYF
+    *   @date : 2020-03-17 - 13:19
+    */
+    public void clientCountReport(){
+        new Thread(()->{
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask(){
+                @Override
+                public void run() {
+                    try {
+                        String addr = IPUtil.getLocalHostIp();
+                        int count = ClientServiceImpl.getChannelMap().size();
+                        ptService.clientCountReport(addr,port,count);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        logger.info("客户端数量定时上报失败.");
+                    }
+                }
+            }, 10000, 30*1000);//30s
+        }).start();
+    }
+
 
 }
