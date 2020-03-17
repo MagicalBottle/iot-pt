@@ -38,15 +38,15 @@ public class RouterController {
 
         //客户端编号
         Long client_id = RequestUtil.getLong(req,"client_id",-1L);
-//        ClientTb clientTb = clientService.queryById(client_id);
-//        if(client_id==null||"".equals(client_id)||clientTb==null){
-//            //响应
-//            JSONObject res = new JSONObject();
-//            res.put("state",0);
-//            res.put("msg","该设备状态异常!");
-//            ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());
-//            return null;
-//        }
+        ClientTb clientTb = clientService.queryById(client_id);
+        if(client_id==null||"".equals(client_id)||clientTb==null){
+            //响应
+            JSONObject res = new JSONObject();
+            res.put("state",0);
+            res.put("msg","该设备状态异常!");
+            ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());
+            return null;
+        }
 
 
         //登录token

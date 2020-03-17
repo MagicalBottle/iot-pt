@@ -75,7 +75,7 @@ public class ClientServiceImpl implements ClientService {
         //消息下行
         if(msg!=null&&!"".equals(msg)){
             try {
-                byte[] req = new StringBuffer("\n").append(msg).append("\n").toString().getBytes("UTF-8");
+                byte[] req = new StringBuffer().append(msg).append("\n").toString().getBytes("UTF-8");
                 ByteBuf buf = Unpooled.buffer(req.length);
                 buf.writeBytes(req);
                 channel.writeAndFlush(buf);

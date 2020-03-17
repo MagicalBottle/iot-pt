@@ -46,6 +46,7 @@ public class MsgServiceImpl implements MsgService {
             channel.close();
             return;
         }
+        //消息协全部为json串(包括心跳)
         JSONObject jObj;
         try {
             jObj = JSONObject.parseObject(msg);
@@ -70,12 +71,8 @@ public class MsgServiceImpl implements MsgService {
 
         //消息类型
         String serviceName = jObj.getString("service_name");
-        //设备id
-        String clientId = jObj.getString("client_id");
 
-        logger.info("命令:"+serviceName+",客户端编号:"+clientId);
-
-        //业务处理
+        //业务处理,上行消息包含两种 1.客户端主动上行(推入mq异步处理)  2.客户端响应上行(推入redis同步轮询)
 
     }
 
