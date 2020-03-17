@@ -75,6 +75,8 @@ public class MsgServiceImpl implements MsgService {
 
         logger.info("命令:"+serviceName+",客户端编号:"+clientId);
 
+        //业务处理
+
     }
 
 }
