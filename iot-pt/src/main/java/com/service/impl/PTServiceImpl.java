@@ -27,7 +27,7 @@ public class PTServiceImpl implements PTService {
     @Autowired
     private CuratorFramework zkClient;
 
-    @Value("${pt.server.path}")
+    @Value("${pt.server.zk.path}")
     private String parentPath;
 
     //消息限流器
@@ -116,7 +116,7 @@ public class PTServiceImpl implements PTService {
         //公共必传字段
         String serviceName = jObj.getString("service_name");//命令
         String clientId = jObj.getString("client_id");//客户端编号
-        String actionId = jObj.getString("action_id");//交互ID,用于同步响应时匹配上下行交互,异步交互可不传
+        String actionId = jObj.getString("action_id");//交互ID,同步响应时匹配上下行,异步交互可不传
 
         //消息异常
         if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){

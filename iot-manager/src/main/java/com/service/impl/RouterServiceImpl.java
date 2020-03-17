@@ -17,8 +17,11 @@ public class RouterServiceImpl implements RouterService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${pt.server.path}")
+    @Value("${pt.server.zk.path}")
     private String parentPath;
+
+    @Value("${token.redis.prefix}")
+    private String tokenPrefix;
 
     @Autowired
     private CuratorFramework zkClient;
@@ -26,7 +29,6 @@ public class RouterServiceImpl implements RouterService {
     @Autowired
     private RedisDao redisDao;
 
-    private static final String tokenPrefix = "pt:router:token:";
 
     /**
     *   @desc : 获取所有在线pt节点
@@ -82,7 +84,8 @@ public class RouterServiceImpl implements RouterService {
     @Override
     public String getCachedToken(Long clientId) {
         String token = UUID.randomUUID().toString();
-        redisDao.setString(tokenPrefix+token,String.valueOf(clientId),60);//60秒过期
+        //60秒过期
+        redisDao.setString(tokenPrefix+token,String.valueOf(clientId),60);
         return token;
     }
 }
