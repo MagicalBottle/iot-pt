@@ -8,6 +8,6 @@ public interface PTService {
 
     void clientCountReport(String host,int port,int count) throws Exception;
 
-    void msgExecute(Channel channel, String msg);
+    void msgPreExecute(Channel channel, String msg);
 
 }

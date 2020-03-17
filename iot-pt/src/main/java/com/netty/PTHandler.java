@@ -67,7 +67,8 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         PTServiceImpl.msgExecutor.execute(()->{
-            ptService.msgExecute(ctx.channel(),msg);
+            //消息预处理
+            ptService.msgPreExecute(ctx.channel(),msg);
         });
         return;
     }

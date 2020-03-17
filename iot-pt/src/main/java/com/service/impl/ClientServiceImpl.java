@@ -1,5 +1,6 @@
 package com.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.service.ClientService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -59,6 +60,50 @@ public class ClientServiceImpl implements ClientService {
         return null;
     }
 
+
+    /**
+    *   @desc : 返回异常信息
+    *   @auth : TYF
+    *   @date : 2020-03-17 - 17:20
+    */
+    @Override
+    public void clientError(Channel channel, String msg,String data) {
+        JSONObject res = new JSONObject();
+        res.put("state",0);
+        res.put("msg",msg);
+        res.put("data",data);
+        msgResp(channel,res.toJSONString());
+    }
+
+    /**
+    *   @desc : 处理客户端登陆
+    *   @auth : TYF
+    *   @date : 2020-03-17 - 16:33
+    */
+    @Override
+    public void clientLogin(Channel channel, String msg) {
+
+    }
+
+    /**
+    *   @desc : 处理客户端心跳
+    *   @auth : TYF
+    *   @date : 2020-03-17 - 16:33
+    */
+    @Override
+    public void clientHeart(Channel channel, String msg) {
+
+    }
+
+    /**
+    *   @desc : 心跳和登陆以外的上行消息转发给业务处理程序
+    *   @auth : TYF
+    *   @date : 2020-03-17 - 16:36
+    */
+    @Override
+    public void clientMsgReSend(Channel channel, String msg) {
+
+    }
 
     /**
     *   @desc : 消息下行

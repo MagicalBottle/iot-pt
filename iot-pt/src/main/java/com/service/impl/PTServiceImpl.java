@@ -1,8 +1,11 @@
 package com.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.service.ClientService;
 import com.service.LimiterService;
 import com.service.PTService;
+import com.utils.CommonMsgResult;
+import com.utils.StringUtils;
 import io.netty.channel.Channel;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -30,6 +33,10 @@ public class PTServiceImpl implements PTService {
     //消息限流器
     @Autowired
     private LimiterService limiterService;
+
+    //客户端处理器
+    @Autowired
+    private ClientService clientService;
 
     //消息处理线程池
     //消息数约1秒3000条
@@ -71,17 +78,17 @@ public class PTServiceImpl implements PTService {
 
 
     /**
-     *   @desc : 消息预处理
+     *   @desc : 消息预处理(心跳和登陆)
      *   @auth : TYF
      *   @date : 2020-03-16 - 15:24
      */
     @Override
-    public void msgExecute(Channel channel, String msg) {
-        logger.info("上行消息 "+msg);
+    public void msgPreExecute(Channel channel, String msg) {
+
         //空消息
         if(msg==null||"".equals(msg)){
-            logger.info("客户端消息为空,踢掉连接");
-            channel.close();
+            logger.info("客户端消息为空");
+            clientService.clientError(channel,"客户端消息为空",msg);
             return;
         }
         //消息协全部为json串
@@ -90,30 +97,51 @@ public class PTServiceImpl implements PTService {
             jObj = JSONObject.parseObject(msg);
         }
         catch (Exception e){
-            logger.info("客户端消息非json串");
-            channel.close();
+            logger.info("消息格式非标准json");
+            clientService.clientError(channel,"消息格式非标准json",msg);
             return;
         }
         //消息限流
         if(!limiterService.tryGlobalAcquire()){
-            logger.info("触发全局消息限流");
-            channel.close();
+            logger.info("触发全局限流,请重试");
+            clientService.clientError(channel,"触发全局限流,请重试",msg);
             return;
         }
         if(!limiterService.tryChannelAcquire(channel)){
-            logger.info("触发单个channel消息限流");
-            channel.close();
+            logger.info("触发客户端消息限流,请重试");
+            clientService.clientError(channel,"触发客户端消息限流,请重试",msg);
             return;
         }
-
 
         //公共必传字段
         String serviceName = jObj.getString("service_name");//命令
         String clientId = jObj.getString("client_id");//客户端编号
-        Integer msgType = jObj.getInteger("msgType");//消息类型
+        String actionId = jObj.getString("action_id");//交互ID,用于双方匹配上下行
 
+        //消息异常
+        if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)||!StringUtils.isNotNull(actionId)){
+            logger.info("消息异常缺少必传字段,serviceName="+serviceName+",clientId="+clientId+",actionId="+actionId);
+            clientService.clientError(channel,"缺少必传字段",msg);
+            return;
+        }
 
-        //业务处理,上行消息包含两种 1.异步消息(推入mq异步处理)  2.同步消息(推入redis同步轮询)
+        //登陆
+        if("login".equals(serviceName)){
+            clientService.clientLogin(channel,msg);
+            return;
+        }
+
+        //心跳
+        else if(serviceName.contains("0x11")){
+            clientService.clientHeart(channel,msg);
+            return;
+        }
+        //其他消息转发给业务程序
+        else{
+            clientService.clientMsgReSend(channel,msg);
+            return;
+        }
+
 
     }
 

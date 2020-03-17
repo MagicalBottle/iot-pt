@@ -63,6 +63,9 @@ public class RouterServiceImpl implements RouterService {
     public String getOneOnlinePT() throws Exception {
         //所有节点
         Map<Integer,String> nodes = this.getAllOnlinePT();
+        if(nodes.keySet().size()<=0){
+            return null;
+        }
         //最小负载节点
         Integer key = Collections.min(nodes.keySet());
         String host = nodes.get(key);
