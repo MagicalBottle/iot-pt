@@ -116,11 +116,11 @@ public class PTServiceImpl implements PTService {
         //公共必传字段
         String serviceName = jObj.getString("service_name");//命令
         String clientId = jObj.getString("client_id");//客户端编号
-        String actionId = jObj.getString("action_id");//交互ID,用于双方匹配上下行
+        String actionId = jObj.getString("action_id");//交互ID,用于同步响应时匹配上下行交互,异步交互可不传
 
         //消息异常
-        if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)||!StringUtils.isNotNull(actionId)){
-            logger.info("消息异常缺少必传字段,serviceName="+serviceName+",clientId="+clientId+",actionId="+actionId);
+        if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){
+            logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId+",actionId="+actionId);
             clientService.clientError(channel,"缺少必传字段",msg);
             return;
         }
