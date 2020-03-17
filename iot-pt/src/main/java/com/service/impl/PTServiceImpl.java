@@ -39,6 +39,10 @@ public class PTServiceImpl implements PTService {
     @Autowired
     private MsgService msgService;
 
+    //客户端处理器
+    @Autowired
+    private ClientService clientService;
+
     //消息处理线程池
     //消息数约1秒3000条
     public static ExecutorService msgExecutor = new ThreadPoolExecutor(30, 50,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(600));
@@ -113,7 +117,7 @@ public class PTServiceImpl implements PTService {
             msgService.clientError(channel,"触发全局限流,请重试",msg);
             return;
         }
-        if(!limiterService.tryChannelAcquire(channel)){
+        if(!limiterService.tryChannelAcquire(clientService.loadClientId(channel))){
             logger.info("触发客户端消息限流,请重试");
             msgService.clientError(channel,"触发客户端消息限流,请重试",msg);
             return;

@@ -1,5 +1,7 @@
 package com.netty;
 
+import com.service.ClientService;
+import com.service.LimiterService;
 import com.service.PTService;
 import com.service.impl.PTServiceImpl;
 import io.netty.channel.*;
@@ -23,6 +25,12 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     @Autowired
     private PTService ptService;
 
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private LimiterService limiterService;
+
     /**
      *   @desc : 客户端异常退出连接
      *   @auth : TYF
@@ -32,6 +40,10 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.info("客户端异常退出连接:"+ctx.channel().remoteAddress().toString());
         logger.info(cause.getMessage());
+        //清除channel缓存
+        clientService.deleteChannel(clientService.loadClientId(ctx.channel()));
+        //清除限流器
+        limiterService.deleteChannelLimiter(clientService.loadClientId(ctx.channel()));
         ctx.close();
     }
 
@@ -56,6 +68,10 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.info("客户端主动退出连接:"+ctx.channel().remoteAddress().toString());
+        //清除channel缓存
+        clientService.deleteChannel(clientService.loadClientId(ctx.channel()));
+        //清除限流器
+        limiterService.deleteChannelLimiter(clientService.loadClientId(ctx.channel()));
         super.channelInactive(ctx);
     }
 

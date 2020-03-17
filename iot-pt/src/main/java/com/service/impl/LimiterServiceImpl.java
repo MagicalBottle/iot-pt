@@ -34,7 +34,10 @@ public class LimiterServiceImpl implements LimiterService {
     private static RateLimiter globalLimiter;
 
     //通道限流器
-    private static Map<Channel,RateLimiter> channelLimiter = new ConcurrentHashMap<>();
+    private static Map<String,RateLimiter> channelLimiter = new ConcurrentHashMap<>();
+
+
+
 
     /**
     *   @desc : 全局客户端消息限流(心跳和登陆除外)
@@ -56,11 +59,21 @@ public class LimiterServiceImpl implements LimiterService {
     *   @date : 2020-03-16 - 14:13
     */
     @Override
-    public boolean tryChannelAcquire(Channel channel) {
-        if(channelLimiter.get(channel)==null){
+    public boolean tryChannelAcquire(String clientId) {
+        if(channelLimiter.get(clientId)==null){
             logger.info("单个客户端消息每秒限制"+channelCount+"条");
-            channelLimiter.put(channel,RateLimiter.create(channelCount));
+            channelLimiter.put(clientId,RateLimiter.create(channelCount));
         }
-        return channelLimiter.get(channel).tryAcquire();
+        return channelLimiter.get(clientId).tryAcquire();
+    }
+
+    /**
+    *   @desc : 清除channel限流器
+    *   @auth : TYF
+    *   @date : 2020/3/17 - 20:49
+    */
+    @Override
+    public void deleteChannelLimiter(String clientId) {
+        channelLimiter.remove(clientId);
     }
 }

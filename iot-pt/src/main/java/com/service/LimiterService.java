@@ -6,6 +6,8 @@ public interface LimiterService {
 
     boolean tryGlobalAcquire();
 
-    boolean tryChannelAcquire(Channel channel);
+    boolean tryChannelAcquire(String clientId);
+
+    void deleteChannelLimiter(String clientId);
 
 }
