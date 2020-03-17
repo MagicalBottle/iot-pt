@@ -4,6 +4,6 @@ import io.netty.channel.Channel;
 
 public interface MsgService {
 
-    void msgHandler(Channel channel,String msg);
+    void msgExecute(Channel channel,String msg);
 
 }

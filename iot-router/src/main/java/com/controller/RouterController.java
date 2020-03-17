@@ -31,10 +31,10 @@ public class RouterController {
     @RequestMapping("/preLogin")
     public String  preLogin(HttpServletRequest req, HttpServletResponse resp) throws Exception{
 
-        //设备标志
-        String deviceId = RequestUtil.getString(req,"deviceId",null);
+        //客户端编号
+        String client_id = RequestUtil.getString(req,"client_id",null);
 
-        if(deviceId==null||"".equals(deviceId)){
+        if(client_id==null||"".equals(client_id)){
             //响应
             JSONObject res = new JSONObject();
             res.put("state",0);
@@ -43,7 +43,7 @@ public class RouterController {
         }
 
         //登录token
-        String token = routerService.getCachedToken(deviceId);
+        String token = routerService.getCachedToken(client_id);
         //服务器host
         String host = routerService.getOneOnlinePT();
 

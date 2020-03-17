@@ -7,6 +7,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,11 +21,16 @@ public class RouterServiceImpl implements RouterService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Value("${pt.server.path}")
+    private String parentPath;
+
     @Autowired
     private CuratorFramework zkClient;
 
     @Autowired
     private RedisDao redisDao;
+
+    private static final String tokenPrefix = "pt:router:token:";
 
     /**
     *   @desc : 获取所有在线pt节点
@@ -36,7 +42,7 @@ public class RouterServiceImpl implements RouterService {
         List<String> nodes = new ArrayList<>();
         //获取所有节点
         try {
-            zkClient.getChildren().forPath("/pt-server/nodes").stream().forEach(n->{
+            zkClient.getChildren().forPath(parentPath).stream().forEach(n->{
                 nodes.add(n);
             });
         }catch (Exception e){
@@ -55,7 +61,7 @@ public class RouterServiceImpl implements RouterService {
     @Override
     public String getOneOnlinePT() throws Exception {
         List<String> nodes = this.getAllOnlinePT();
-        return nodes.get(1);
+        return nodes.get(nodes.size()-1);
     }
 
 
@@ -65,9 +71,9 @@ public class RouterServiceImpl implements RouterService {
     *   @date : 2020/3/16 - 23:46
     */
     @Override
-    public String getCachedToken(String deviceId) {
+    public String getCachedToken(String clientId) {
         String token = UUID.randomUUID().toString();
-        redisDao.setString(token,deviceId,60);//60秒过期
+        redisDao.setString(tokenPrefix+token,clientId,60);//60秒过期
         return token;
     }
 }

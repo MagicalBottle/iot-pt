@@ -68,10 +68,8 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         logger.info("上行消息 "+msg);
-
-        //上行消息要区分主动上行和响应上行，一个存mq一个存redis
         MsgServiceImpl.msgExecutor.execute(()->{
-            msgService.msgHandler(ctx.channel(),msg);
+            msgService.msgExecute(ctx.channel(),msg);
         });
         return;
     }
