@@ -1,17 +1,11 @@
 package com.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -23,35 +17,6 @@ import java.util.TreeMap;
 public class RequestUtil {
 
     private static Logger logger = LoggerFactory.getLogger(RequestUtil.class);
-
-    /**
-    *   @desc : request中解析参数到map
-    *   @auth : TYF
-    *   @date : 2019-06-28 - 17:14
-    */
-    public static TreeMap<String, String> parseXml(HttpServletRequest request){
-        TreeMap<String, String> map = new TreeMap<>();
-        try {
-            InputStream inputStream = request.getInputStream();
-            SAXReader reader = new SAXReader();
-            Document document = reader.read(inputStream);
-            Element root = document.getRootElement();
-            @SuppressWarnings("unchecked")
-            List<Element> elementList = root.elements();
-            for (Element e : elementList)
-                map.put(e.getName(), e.getText());
-            inputStream.close();
-        }
-        catch (IOException e){
-            logger.info("Xml转Map异常");
-            return null;
-        }
-        catch (DocumentException e){
-            logger.info("Xml转Map异常");
-            return null;
-        }
-        return map;
-    }
 
     /**
      *   @desc : 参数非空验证

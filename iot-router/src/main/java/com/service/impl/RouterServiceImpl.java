@@ -8,8 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 public class RouterServiceImpl implements RouterService {
@@ -28,9 +32,18 @@ public class RouterServiceImpl implements RouterService {
     *   @date : 2020/3/15 - 19:02
     */
     @Override
-    public List<String> getAllOnlinePT() throws Exception{
-        logger.info("current online nodes: "+new String(zkClient.getData().storingStatIn(new Stat()).forPath("/zk/nodes")));
-        return null;
+    public List<String> getAllOnlinePT(){
+        List<String> nodes = new ArrayList<>();
+        //获取所有节点
+        try {
+            zkClient.getChildren().forPath("/pt-server/nodes").stream().forEach(n->{
+                nodes.add(n);
+            });
+        }catch (Exception e){
+               logger.info("获取所有节点失败");
+        }
+        logger.info("当前在线节点 "+Arrays.toString(nodes.toArray()));
+        return nodes;
     }
 
 
@@ -41,7 +54,8 @@ public class RouterServiceImpl implements RouterService {
     */
     @Override
     public String getOneOnlinePT() throws Exception {
-        return "xxxx";
+        List<String> nodes = this.getAllOnlinePT();
+        return nodes.get(1);
     }
 
 
@@ -53,7 +67,7 @@ public class RouterServiceImpl implements RouterService {
     @Override
     public String getCachedToken(String deviceId) {
         String token = UUID.randomUUID().toString();
-        redisDao.setString(token,deviceId,30);//30秒过期
+        redisDao.setString(token,deviceId,60);//60秒过期
         return token;
     }
 }

@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 *   @date : 2020/3/16 - 23:35
 */
 @RestController
-@RequestMapping("/router")
+@RequestMapping("/common")
 public class RouterController {
 
 
@@ -33,6 +33,15 @@ public class RouterController {
 
         //设备标志
         String deviceId = RequestUtil.getString(req,"deviceId",null);
+
+        if(deviceId==null||"".equals(deviceId)){
+            //响应
+            JSONObject res = new JSONObject();
+            res.put("state",0);
+            ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());
+            return null;
+        }
+
         //登录token
         String token = routerService.getCachedToken(deviceId);
         //服务器host

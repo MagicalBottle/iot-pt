@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface RouterService {
 
-    List<String> getAllOnlinePT() throws Exception;
+    List<String> getAllOnlinePT();
 
     String getOneOnlinePT() throws Exception;
 
