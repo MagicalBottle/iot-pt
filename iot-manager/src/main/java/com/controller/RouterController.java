@@ -37,9 +37,9 @@ public class RouterController {
         Long client_id = RequestUtil.getLong(req,"client_id",-1L);
 
         //这里可以对客户端编号进行鉴权
-
-        //登录token
         String token = routerService.getCachedToken(client_id);
+
+
         //服务器host
         String host = routerService.getOneOnlinePT();
 
@@ -83,7 +83,7 @@ public class RouterController {
     public String  getClientHeart(HttpServletRequest req, HttpServletResponse resp) throws Exception{
 
         //服务器host
-        JSONArray data = routerService.getClientHeart();
+        JSONObject data = routerService.getClientHeart();
         //响应
         JSONObject res = new JSONObject();
         res.put("state",1);
@@ -103,7 +103,7 @@ public class RouterController {
     public String  getClientConn(HttpServletRequest req, HttpServletResponse resp) throws Exception{
 
         //服务器host
-        JSONArray data = routerService.getClientConn();
+        JSONObject data = routerService.getClientConn();
         //响应
         JSONObject res = new JSONObject();
         res.put("state",1);

@@ -1,17 +1,15 @@
 package com.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
+
 import com.alibaba.fastjson.JSONObject;
 import com.service.RouterService;
 import com.utils.redis.RedisDao;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 
 @Service
@@ -33,6 +31,9 @@ public class RouterServiceImpl implements RouterService {
 
     @Value("${client.count.redis.prefix}")
     private String clientCountPrefix;
+
+    @Value("${pt.server.ip.transfer}")
+    private String ipTransfer;
 
     @Autowired
     private CuratorFramework zkClient;
@@ -106,9 +107,17 @@ public class RouterServiceImpl implements RouterService {
             return null;
         }
         //最小负载节点
-        Integer key = Collections.min(nodes.keySet());
-        String host = nodes.get(key);
-        logger.info("当前最小负载节点"+host+"客户端"+key+"个");
+        Integer count = Collections.min(nodes.keySet());
+        //内网地址
+        String host = nodes.get(count);
+        //转为外网地址
+        JSONObject ipSet = JSONObject.parseObject(ipTransfer);
+        ipSet.keySet().stream().forEach(key->{
+            if(host.contains(key)){
+                host.replace(key,ipSet.getString(key));
+            }
+        });
+        logger.info("当前最小负载节点"+host+"客户端"+count+"个");
         return host;
     }
 
