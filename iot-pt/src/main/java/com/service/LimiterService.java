@@ -10,4 +10,6 @@ public interface LimiterService {
 
     void deleteChannelLimiter(String clientId);
 
+    void saveChannelLimiter(String clientId);
+
 }

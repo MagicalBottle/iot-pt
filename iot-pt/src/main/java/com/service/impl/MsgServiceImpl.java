@@ -1,7 +1,9 @@
 package com.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.util.concurrent.RateLimiter;
 import com.service.ClientService;
+import com.service.LimiterService;
 import com.service.MsgService;
 import com.utils.IPUtil;
 import com.utils.redis.RedisDao;
@@ -26,9 +28,13 @@ public class MsgServiceImpl implements MsgService {
     private Integer clientMaxSize;
 
 
-    //客户端管理器啊
+    //客户端管理器
     @Autowired
     private ClientService clientService;
+
+    //客户端限流管理器
+    @Autowired
+    private LimiterService limiterService;
 
 
 
@@ -67,24 +73,26 @@ public class MsgServiceImpl implements MsgService {
      */
     @Override
     public void clientLogin(Channel channel, JSONObject msg) {
-
+        String clientId = msg.getString("client_id");
         //不超过客户端最高连接数
         if(ClientServiceImpl.getChannelMap().size()>=clientMaxSize){
             clientError(channel,"当前服务器节点负载上限,请切换节点登陆",msg.toJSONString());
             channel.close();
+            logger.info("当前服务器节点负载上限拒绝连接 clientId="+clientId);
             return;
         }
 
         //可能重复登陆 TODO
 
 
-
         //缓存通道对象(cahnnel)和登陆信息(redis)
-        String clientId = msg.getString("client_id");
         clientService.saveChannel(channel,clientId);
         clientService.saveLoginInfo(channel);
+        //创建限流器
+        limiterService.saveChannelLimiter(clientId);
         //返回登录响应
         clientSuccess(channel,"登陆成功",msg.toJSONString());
+        logger.info("登陆成功,clientId="+clientId);
         return;
     }
 
@@ -121,7 +129,7 @@ public class MsgServiceImpl implements MsgService {
             //缓存心跳时间
             clientService.saveHeartInfo(clientId);
             //返回心跳响应
-            clientError(channel,"0x12",heart);
+            msgResp(channel,"0x12");
         }
     }
 

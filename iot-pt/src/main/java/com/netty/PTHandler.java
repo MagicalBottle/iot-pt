@@ -39,7 +39,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.info("客户端异常退出连接:"+ctx.channel().remoteAddress().toString());
-        logger.info(cause.getMessage());
+        logger.info(cause.toString());
         //清除channel缓存
         clientService.deleteChannel(clientService.loadClientId(ctx.channel()));
         //清除限流器

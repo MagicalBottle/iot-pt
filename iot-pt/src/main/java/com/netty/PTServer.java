@@ -1,5 +1,6 @@
 package com.netty;
 
+import com.service.ClientService;
 import com.service.PTService;
 import com.service.impl.ClientServiceImpl;
 import com.utils.IPUtil;
@@ -119,6 +120,9 @@ public class PTServer {
     }
 
 
+    @Autowired
+    private ClientService clientService;
+
     /**
     *   @desc : 客户端数量定时上报
     *   @auth : TYF
@@ -135,6 +139,12 @@ public class PTServer {
                         String addr = IPUtil.getLocalHostIp();
                         int count = ClientServiceImpl.getChannelMap().size();
                         ptService.clientCountReport(addr,port,count,expire);
+
+//                        ClientServiceImpl.getChannelMap().entrySet().stream().forEach(entry->{
+//                            logger.info("无效的 clientId："+entry.getKey());
+//                            logger.info("无效的 channel:"+entry.getValue()+",clientId:"+clientService.loadClientId(entry.getValue()));
+//                        });
+
                     }catch (Exception e){
                         e.printStackTrace();
                         logger.info("客户端数量定时上报失败.");

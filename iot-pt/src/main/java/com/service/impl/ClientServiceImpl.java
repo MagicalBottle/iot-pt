@@ -102,8 +102,6 @@ public class ClientServiceImpl implements ClientService {
     public void deleteChannel(String clientId) {
         if(clientId!=null){
             channelMap.remove(clientId);
-        }else{
-            logger.info("清除通道缓存失败 clientId为null");
         }
     }
 
