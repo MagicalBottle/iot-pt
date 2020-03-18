@@ -125,6 +125,7 @@ public class PTServer {
     *   @date : 2020-03-17 - 13:19
     */
     public void clientCountReport(){
+        Integer expire = 15;//上报间隔时间
         new Thread(()->{
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask(){
@@ -133,13 +134,13 @@ public class PTServer {
                     try {
                         String addr = IPUtil.getLocalHostIp();
                         int count = ClientServiceImpl.getChannelMap().size();
-                        ptService.clientCountReport(addr,port,count);
+                        ptService.clientCountReport(addr,port,count,expire);
                     }catch (Exception e){
                         e.printStackTrace();
                         logger.info("客户端数量定时上报失败.");
                     }
                 }
-            }, 10000, 15*1000);//15s一次
+            }, 10000, expire*1000);//15s一次
         }).start();
     }
 

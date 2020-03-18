@@ -45,6 +45,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
         //清除限流器
         limiterService.deleteChannelLimiter(clientService.loadClientId(ctx.channel()));
         //清除login缓存
+        clientService.deleteLoginInfo(clientService.loadClientId(ctx.channel()));
         ctx.close();
     }
 
@@ -74,7 +75,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
         //清除channel限流器
         limiterService.deleteChannelLimiter(clientService.loadClientId(ctx.channel()));
         //清除login缓存
-
+        clientService.deleteLoginInfo(clientService.loadClientId(ctx.channel()));
         super.channelInactive(ctx);
     }
 

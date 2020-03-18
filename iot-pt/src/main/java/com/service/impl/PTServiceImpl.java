@@ -77,10 +77,10 @@ public class PTServiceImpl implements PTService {
     *   @date : 2020-03-17 - 13:09
     */
     @Override
-    public void clientCountReport(String host,int port,int count) throws Exception {
+    public void clientCountReport(String host,int port,int count,int exipre) throws Exception {
         String addr = host+":"+port;
         String key = clientCountPrefix+addr;
-        redisDao.setString(key,String.valueOf(count),20);//20秒过期
+        redisDao.setString(key,String.valueOf(count),exipre+5);//过期时间比上报间隔时间长一点
         logger.info("上报当前节点客户端数量" +addr+",count="+count);
     }
 

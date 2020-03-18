@@ -34,6 +34,10 @@ public class ClientServiceImpl implements ClientService {
     @Value("${client.login.redis.prefix}")
     private String loginPrefix;
 
+    //redis心跳信息缓存前缀
+    @Value("${client.heart.redis.prefix}")
+    private String heartPrefix;
+
     @Value("${netty.port}")
     private int port;
 
@@ -134,8 +138,7 @@ public class ClientServiceImpl implements ClientService {
      *   @date : 2020-03-18 - 13:28
      */
     @Override
-    public void deleteLoginInfo(Channel channel) {
-        String clientId = loadClientId(channel);
+    public void deleteLoginInfo(String clientId) {
         String key = loginPrefix+clientId;
         redisDao.delString(key);
     }
@@ -146,8 +149,8 @@ public class ClientServiceImpl implements ClientService {
     *   @date : 2020-03-18 - 13:35
     */
     @Override
-    public void saveHeartInfo(Channel channel) {
-        String clientId = loadClientId(channel);
-        redisDao.setString(clientId,String.valueOf(System.currentTimeMillis()));//缓存心跳时间
+    public void saveHeartInfo(String clientId) {
+        String key = heartPrefix+clientId;
+        redisDao.setString(key,String.valueOf(System.currentTimeMillis()),60*60);//缓存心跳时间1小时过期 需要比协议心跳间隔时间长
     }
 }

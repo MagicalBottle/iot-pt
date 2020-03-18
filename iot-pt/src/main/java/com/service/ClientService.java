@@ -17,9 +17,9 @@ public interface ClientService {
 
     void saveLoginInfo(Channel channel);
 
-    void deleteLoginInfo(Channel channel);
+    void deleteLoginInfo(String clientId);
 
-    void saveHeartInfo(Channel channel);
+    void saveHeartInfo(String clientId);
 
 
 

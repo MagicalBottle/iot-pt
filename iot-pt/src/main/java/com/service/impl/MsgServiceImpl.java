@@ -119,7 +119,7 @@ public class MsgServiceImpl implements MsgService {
         //客户端已登陆
         else{
             //缓存心跳时间
-            clientService.saveHeartInfo(channel);
+            clientService.saveHeartInfo(clientId);
             //返回心跳响应
             clientError(channel,"0x12",heart);
         }

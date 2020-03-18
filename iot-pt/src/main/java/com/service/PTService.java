@@ -6,7 +6,7 @@ public interface PTService {
 
     void registryToZk(String host,int port) throws Exception;
 
-    void clientCountReport(String host,int port,int count) throws Exception;
+    void clientCountReport(String host,int port,int count,int exipre) throws Exception;
 
     void msgPreExecute(Channel channel, String msg);
 
