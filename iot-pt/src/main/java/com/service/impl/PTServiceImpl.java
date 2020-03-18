@@ -81,7 +81,7 @@ public class PTServiceImpl implements PTService {
         String addr = host+":"+port;
         String key = clientCountPrefix+addr;
         redisDao.setString(key,String.valueOf(count),exipre+5);//过期时间比上报间隔时间长一点
-        logger.info("上报当前节点客户端数量" +addr+",count="+count);
+        logger.info("上报节点客户端数量"+count+"个,本地"+addr);
     }
 
 

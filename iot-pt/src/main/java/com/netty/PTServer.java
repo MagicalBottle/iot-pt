@@ -1,6 +1,5 @@
 package com.netty;
 
-import com.service.ClientService;
 import com.service.PTService;
 import com.service.impl.ClientServiceImpl;
 import com.utils.IPUtil;
@@ -11,7 +10,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
