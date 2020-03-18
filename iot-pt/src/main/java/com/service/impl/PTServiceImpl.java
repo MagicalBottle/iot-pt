@@ -142,6 +142,7 @@ public class PTServiceImpl implements PTService {
         }
         //非登陆消息 且未登录
         else if(!msgService.clientIsLogin(channel)){
+            logger.info("请先登陆!");
             msgService.clientError(channel,"请先登录!",msg);
             return;
         }

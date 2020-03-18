@@ -61,7 +61,7 @@ public class PTServer {
                                     //客户端消息反序列化
                                     .addLast(new StringDecoder(Charset.forName("UTF-8")))
                                     //客户端35s无新消息踢掉连接
-                                    .addLast(new ReadTimeoutHandler(35))
+                                    //.addLast(new ReadTimeoutHandler(35))
                                     //业务消息处理
                                     .addLast(ptHandler);
                         }
@@ -119,10 +119,6 @@ public class PTServer {
         }).start();
     }
 
-
-    @Autowired
-    private ClientService clientService;
-
     /**
     *   @desc : 客户端数量定时上报
     *   @auth : TYF
@@ -139,12 +135,6 @@ public class PTServer {
                         String addr = IPUtil.getLocalHostIp();
                         int count = ClientServiceImpl.getChannelMap().size();
                         ptService.clientCountReport(addr,port,count,expire);
-
-//                        ClientServiceImpl.getChannelMap().entrySet().stream().forEach(entry->{
-//                            logger.info("无效的 clientId："+entry.getKey());
-//                            logger.info("无效的 channel:"+entry.getValue()+",clientId:"+clientService.loadClientId(entry.getValue()));
-//                        });
-
                     }catch (Exception e){
                         e.printStackTrace();
                         logger.info("客户端数量定时上报失败.");

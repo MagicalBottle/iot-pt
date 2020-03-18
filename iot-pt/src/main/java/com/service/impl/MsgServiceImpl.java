@@ -82,7 +82,7 @@ public class MsgServiceImpl implements MsgService {
             return;
         }
 
-        //可能重复登陆 TODO
+        //重复登陆验证 TODO
 
 
         //缓存通道对象(cahnnel)和登陆信息(redis)
