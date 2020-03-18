@@ -7,6 +7,7 @@ import com.service.MsgService;
 import com.service.PTService;
 import com.utils.CommonMsgResult;
 import com.utils.StringUtils;
+import com.utils.redis.RedisDao;
 import io.netty.channel.Channel;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -31,6 +32,9 @@ public class PTServiceImpl implements PTService {
     @Value("${pt.server.zk.path}")
     private String parentPath;
 
+    @Value("${client.count.redis.prefix}")
+    private String clientCountPrefix;
+
     //消息限流器
     @Autowired
     private LimiterService limiterService;
@@ -39,13 +43,12 @@ public class PTServiceImpl implements PTService {
     @Autowired
     private MsgService msgService;
 
-    //客户端处理器
     @Autowired
-    private ClientService clientService;
+    private RedisDao redisDao;
 
     //消息处理线程池
     //消息数约1秒3000条
-    public static ExecutorService msgExecutor = new ThreadPoolExecutor(30, 50,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(600));
+    public static ExecutorService msgExecutor = new ThreadPoolExecutor(150, 300,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
 
 
     /**
@@ -63,21 +66,21 @@ public class PTServiceImpl implements PTService {
                 //子节点为临时节点,zk会话断开自动清除
                 .withMode(CreateMode.EPHEMERAL)
                 //节点
-                .forPath(childNode,"0".getBytes());
+                .forPath(childNode,"online".getBytes());
         logger.info("当前在线节点:"+zkClient.getChildren().forPath(parentPath));
     }
 
 
     /**
-    *   @desc : 当前netty节点,客户端数量上报
+    *   @desc : 当前netty节点,客户端数量上报redis
     *   @auth : TYF
     *   @date : 2020-03-17 - 13:09
     */
     @Override
     public void clientCountReport(String host,int port,int count) throws Exception {
         String addr = host+":"+port;
-        String childNode = parentPath+"/"+addr;
-        zkClient.setData().forPath(childNode,String.valueOf(count).getBytes());
+        String key = clientCountPrefix+addr;
+        redisDao.setString(key,String.valueOf(count),20);//20秒过期
         logger.info("上报当前节点客户端数量" +addr+",count="+count);
     }
 
@@ -96,55 +99,59 @@ public class PTServiceImpl implements PTService {
             msgService.clientError(channel,"客户端消息为空",msg);
             return;
         }
-        //心跳
-        if(msg.contains("0x11")){
-            msgService.clientHeart(channel,msg);
-            return;
-        }
-        //消息协全部为json串
-        JSONObject jObj;
-        try {
-            jObj = JSONObject.parseObject(msg);
-        }
-        catch (Exception e){
-            logger.info("消息格式非标准json");
-            msgService.clientError(channel,"消息格式非标准json",msg);
-            return;
-        }
-        //消息限流
+
+        //全局消息限流
         if(!limiterService.tryGlobalAcquire()){
             logger.info("触发全局限流,请重试");
             msgService.clientError(channel,"触发全局限流,请重试",msg);
             return;
         }
-        if(!limiterService.tryChannelAcquire(clientService.loadClientId(channel))){
-            logger.info("触发客户端消息限流,请重试");
-            msgService.clientError(channel,"触发客户端消息限流,请重试",msg);
+
+        //心跳消息
+        JSONObject jObj;
+        if(msg.contains("0x11")){
+            msgService.clientHeart(channel,msg);
             return;
         }
+        //非心跳消息
+        else{
+            try {
+                jObj = JSONObject.parseObject(msg);
+            }
+            catch (Exception e){
+                logger.info("消息格式非标准json");
+                msgService.clientError(channel,"消息格式非标准json",msg);
+                return;
+            }
+        }
 
-        //公共字段
-        String serviceName = jObj.getString("service_name");//命令
-        String clientId = jObj.getString("client_id");//客户端编号
-
-        //消息异常
+        //命令名称
+        String serviceName = jObj.getString("service_name");
+        //客户端编号
+        String clientId = jObj.getString("client_id");
         if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){
             logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId);
             msgService.clientError(channel,"缺少必传字段",msg);
             return;
         }
 
-        //登陆
+        //登陆消息
         if("login".equals(serviceName)){
             msgService.clientLogin(channel,jObj);
+            return;
         }
-        //其他消息转发给业务程序
+        //非登陆消息 且未登录
+        else if(!msgService.clientIsLogin(channel)){
+            msgService.clientError(channel,"请先登录!",msg);
+            return;
+        }
+        //正常业务消息
         else{
             msgService.clientMsgReSend(channel,jObj);
+            return;
         }
-        return;
+
 
     }
-
 
 }

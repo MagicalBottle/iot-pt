@@ -23,6 +23,9 @@ public class RouterServiceImpl implements RouterService {
     @Value("${token.redis.prefix}")
     private String tokenPrefix;
 
+    @Value("${client.count.redis.prefix}")
+    private String clientCountPrefix;
+
     @Autowired
     private CuratorFramework zkClient;
 
@@ -41,12 +44,12 @@ public class RouterServiceImpl implements RouterService {
         try {
             //获取所有节点
             zkClient.getChildren().forPath(parentPath).stream().forEach(node->{
-                try {
-                    //分别读取节点值
-                    Integer count = Integer.valueOf(new String(zkClient.getData().storingStatIn(new Stat()).forPath(parentPath+"/"+node)));
+                //分别读取节点客户端数量
+                String value = redisDao.getString(clientCountPrefix+node);
+                if(value!=null){
+                    Integer count = Integer.valueOf(value);
+                    logger.info("节点"+node+"客户端数量"+count);
                     res.put(count,node);
-                }catch (Exception e){
-                    logger.info("获取所有节点失败");
                 }
             });
         }catch (Exception e){

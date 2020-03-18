@@ -9,6 +9,7 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +18,12 @@ public class MsgServiceImpl implements MsgService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+
+    //最大客户端连接数
+    @Value("${netty.client.size.max}")
+    private String clientMaxSize;
+
+    //客户端管理器啊
     @Autowired
     private ClientService clientService;
 
@@ -31,7 +38,7 @@ public class MsgServiceImpl implements MsgService {
         JSONObject res = new JSONObject();
         res.put("state",0);
         res.put("msg",msg);
-        res.put("data",data);
+        res.put("req",data);
         msgResp(channel,res.toJSONString());
     }
 
@@ -44,11 +51,22 @@ public class MsgServiceImpl implements MsgService {
     public void clientLogin(Channel channel, JSONObject msg) {
         //客户端编号
         String clientId = msg.getString("client_id");
-        //查询客户端
         //查询redis是否有登录信息排除重复登陆
+        //不超过客户端最高连接数配置
         clientService.saveChannel(channel,clientId);
         //保存登录信息到redis
         //返回登录响应
+    }
+
+    /**
+    *   @desc : 检查客户端是否登录
+    *   @auth : TYF
+    *   @date : 2020-03-18 - 10:08
+    */
+    @Override
+    public boolean clientIsLogin(Channel channel) {
+        String clientId = clientService.loadClientId(channel);
+        return !(clientId==null);
     }
 
     /**
@@ -58,8 +76,18 @@ public class MsgServiceImpl implements MsgService {
      */
     @Override
     public void clientHeart(Channel channel, String heart) {
-        //保存心跳信息到redis
-        //返回心跳响应
+        //找到clientId
+        String client = clientService.loadClientId(channel);
+        //客户端未登陆
+        if(client==null){
+            logger.info("未登录,请别发心跳?");
+            channel.close();
+        }
+        //客户端已登陆
+        else{
+            //保存心跳信息到redis
+            //返回心跳响应
+        }
     }
 
     /**
@@ -69,7 +97,7 @@ public class MsgServiceImpl implements MsgService {
      */
     @Override
     public void clientMsgReSend(Channel channel, JSONObject msg) {
-        //调用grpc传给业务服务器
+
     }
 
     /**

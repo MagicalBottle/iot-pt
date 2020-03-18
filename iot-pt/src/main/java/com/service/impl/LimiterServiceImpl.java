@@ -74,6 +74,8 @@ public class LimiterServiceImpl implements LimiterService {
     */
     @Override
     public void deleteChannelLimiter(String clientId) {
-        channelLimiter.remove(clientId);
+        if(clientId!=null){
+            channelLimiter.remove(clientId);
+        }
     }
 }

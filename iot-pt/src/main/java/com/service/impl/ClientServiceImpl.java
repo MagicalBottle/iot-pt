@@ -1,9 +1,7 @@
 package com.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
+
 import com.service.ClientService;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
@@ -81,7 +79,9 @@ public class ClientServiceImpl implements ClientService {
     */
     @Override
     public void deleteChannel(String clientId) {
-        channelMap.remove(clientId);
+        if(clientId!=null){
+            channelMap.remove(clientId);
+        }
     }
 
 

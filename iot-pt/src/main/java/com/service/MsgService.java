@@ -9,6 +9,8 @@ public interface MsgService {
 
     void clientLogin(Channel channel, JSONObject msg);
 
+    boolean clientIsLogin(Channel channel);
+
     void clientHeart(Channel channel, String msg);
 
     void clientMsgReSend(Channel channel,JSONObject msg);
