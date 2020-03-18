@@ -1,11 +1,11 @@
 package com.utils.redis;
 
+import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
@@ -99,6 +99,16 @@ public class RedisDao {
     }
 
 
+    //按照前缀模糊批量查询
+    public JSONObject getStringByPrefix(String prefix){
+        JSONObject res = new JSONObject();
+        List<String> keys = new ArrayList<>(stringRedisTemplate.keys(prefix+"*"));
+        List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);
+        for(int i=0;i<keys.size();i++){
+            res.put(keys.get(i),values.get(i));
+        }
+        return res;
+    }
 
 
 }

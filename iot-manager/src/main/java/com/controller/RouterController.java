@@ -1,5 +1,6 @@
 package com.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.service.RouterService;
 import com.utils.RequestUtil;
@@ -51,6 +52,67 @@ public class RouterController {
         return null;
 
     }
+
+
+    /**
+     *   @desc : 获取pt-server节点状态信息
+     *   @auth : TYF
+     *   @date : 2020/3/16 - 23:43
+     */
+    @RequestMapping("/getPtStatus")
+    public String  getPtStatus(HttpServletRequest req, HttpServletResponse resp) throws Exception{
+
+        //服务器host
+        JSONObject data = routerService.getPtStatus();
+        //响应
+        JSONObject res = new JSONObject();
+        res.put("state",1);
+        res.put("data",data);
+        ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());
+        return null;
+
+    }
+
+
+    /**
+     *   @desc : 获取客户端心跳记录
+     *   @auth : TYF
+     *   @date : 2020/3/16 - 23:43
+     */
+    @RequestMapping("/getClientHeart")
+    public String  getClientHeart(HttpServletRequest req, HttpServletResponse resp) throws Exception{
+
+        //服务器host
+        JSONArray data = routerService.getClientHeart();
+        //响应
+        JSONObject res = new JSONObject();
+        res.put("state",1);
+        res.put("data",data);
+        ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());
+        return null;
+
+    }
+
+
+    /**
+     *   @desc : 获取客户端登陆记录
+     *   @auth : TYF
+     *   @date : 2020/3/16 - 23:43
+     */
+    @RequestMapping("/getClientConn")
+    public String  getClientConn(HttpServletRequest req, HttpServletResponse resp) throws Exception{
+
+        //服务器host
+        JSONArray data = routerService.getClientConn();
+        //响应
+        JSONObject res = new JSONObject();
+        res.put("state",1);
+        res.put("data",data);
+        ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());
+        return null;
+
+    }
+
 
 
 }
