@@ -7,6 +7,8 @@ public interface MsgService {
 
     void clientError(Channel channel, String msg, String data);
 
+    void clientSuccess(Channel channel, String msg, String data);
+
     void clientLogin(Channel channel, JSONObject msg);
 
     boolean clientIsLogin(Channel channel);

@@ -3,6 +3,8 @@ package com.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.service.ClientService;
 import com.service.MsgService;
+import com.utils.IPUtil;
+import com.utils.redis.RedisDao;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -21,11 +23,13 @@ public class MsgServiceImpl implements MsgService {
 
     //最大客户端连接数
     @Value("${netty.client.size.max}")
-    private String clientMaxSize;
+    private Integer clientMaxSize;
+
 
     //客户端管理器啊
     @Autowired
     private ClientService clientService;
+
 
 
     /**
@@ -43,20 +47,48 @@ public class MsgServiceImpl implements MsgService {
     }
 
     /**
+     *   @desc : 返回成功信息
+     *   @auth : TYF
+     *   @date : 2020-03-17 - 17:20
+     */
+    @Override
+    public void clientSuccess(Channel channel, String msg, String data) {
+        JSONObject res = new JSONObject();
+        res.put("state",1);
+        res.put("msg",msg);
+        res.put("req",data);
+        msgResp(channel,res.toJSONString());
+    }
+
+    /**
      *   @desc : 处理客户端登陆
      *   @auth : TYF
      *   @date : 2020-03-17 - 16:33
      */
     @Override
     public void clientLogin(Channel channel, JSONObject msg) {
-        //客户端编号
+
+        //不超过客户端最高连接数
+        if(ClientServiceImpl.getChannelMap().size()>=clientMaxSize){
+            clientError(channel,"当前服务器节点负载上限,请切换节点登陆",msg.toJSONString());
+            channel.close();
+            return;
+        }
+
+        //可能重复登陆 TODO
+
+
+
+        //缓存通道对象(cahnnel)和登陆信息(redis)
         String clientId = msg.getString("client_id");
-        //查询redis是否有登录信息排除重复登陆
-        //不超过客户端最高连接数配置
         clientService.saveChannel(channel,clientId);
-        //保存登录信息到redis
+        clientService.saveLoginInfo(channel);
         //返回登录响应
+        clientSuccess(channel,"登陆成功",msg.toJSONString());
+        return;
     }
+
+
 
     /**
     *   @desc : 检查客户端是否登录
@@ -77,16 +109,19 @@ public class MsgServiceImpl implements MsgService {
     @Override
     public void clientHeart(Channel channel, String heart) {
         //找到clientId
-        String client = clientService.loadClientId(channel);
+        String clientId = clientService.loadClientId(channel);
         //客户端未登陆
-        if(client==null){
-            logger.info("未登录,请别发心跳?");
+        if(clientId==null){
+            logger.info("未登录,请别发心跳!");
+            clientError(channel,"未登录,请别发心跳",heart);
             channel.close();
         }
         //客户端已登陆
         else{
-            //保存心跳信息到redis
+            //缓存心跳时间
+            clientService.saveHeartInfo(channel);
             //返回心跳响应
+            clientError(channel,"0x12",heart);
         }
     }
 

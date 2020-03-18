@@ -44,6 +44,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
         clientService.deleteChannel(clientService.loadClientId(ctx.channel()));
         //清除限流器
         limiterService.deleteChannelLimiter(clientService.loadClientId(ctx.channel()));
+        //清除login缓存
         ctx.close();
     }
 
@@ -70,8 +71,10 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
         logger.info("客户端主动退出连接:"+ctx.channel().remoteAddress().toString());
         //清除channel缓存
         clientService.deleteChannel(clientService.loadClientId(ctx.channel()));
-        //清除限流器
+        //清除channel限流器
         limiterService.deleteChannelLimiter(clientService.loadClientId(ctx.channel()));
+        //清除login缓存
+
         super.channelInactive(ctx);
     }
 
@@ -84,6 +87,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         PTServiceImpl.msgExecutor.execute(()->{
             //消息预处理
+            //TODO  线程池拒绝任务提交处理
             ptService.msgPreExecute(ctx.channel(),msg);
         });
         return;
