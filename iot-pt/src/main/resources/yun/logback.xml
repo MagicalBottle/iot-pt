@@ -15,7 +15,7 @@
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 
-            <fileNamePattern>${LOG_PATH}/ist_pay/%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>${LOG_PATH}/pt/%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
