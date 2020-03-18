@@ -60,26 +60,6 @@
 			<version>4.2.0</version>
 		</dependency>
 
-		<!--druid-->
-		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>druid-spring-boot-starter</artifactId>
-			<version>RELEASE</version>
-		</dependency>
-		<!--druid-->
-		<!--jdbc  5.1.3和5.0.8 适用jdk8和jdk7 -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>5.1.3.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>42.1.4</version>
-		</dependency>
-		<!--jdbc-->
-
 
 
 	</dependencies>
