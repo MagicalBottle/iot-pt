@@ -82,8 +82,10 @@ public class MsgServiceImpl implements MsgService {
             return;
         }
 
-        //重复登陆验证 TODO
-
+        //如果使用相同的client_id重复登陆
+        //会造成redis缓存的登陆信息更新,会影响消息下行
+        //极端情况下每个节点都存在这个client_id的链接
+        //但只有最有一个节点的该客户端才能接收到下行消息
 
         //缓存通道对象(cahnnel)和登陆信息(redis)
         clientService.saveChannel(channel,clientId);
