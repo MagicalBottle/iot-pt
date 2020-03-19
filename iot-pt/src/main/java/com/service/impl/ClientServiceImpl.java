@@ -154,6 +154,16 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void clientMsgReSend(Channel channel, JSONObject msg) {
 
+        //下行消息的ack推入redis消费端主动轮询
+        String ackId = msg.getString("ack_id");
+        if(ackId!=null&&!"".equals(ackId)){
+
+        }
+        //主动上行消息推入mq消费端被动消费
+        else{
+
+        }
+
     }
 
     /**
