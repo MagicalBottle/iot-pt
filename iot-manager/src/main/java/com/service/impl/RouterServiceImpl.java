@@ -26,9 +26,6 @@ public class RouterServiceImpl implements RouterService {
     @Value("${client.heart.redis.prefix}")
     private String heartPrefix;
 
-    @Value("${client.token.redis.prefix}")
-    private String tokenPrefix;
-
     @Value("${client.count.redis.prefix}")
     private String clientCountPrefix;
 
@@ -109,20 +106,6 @@ public class RouterServiceImpl implements RouterService {
         String host = nodes.get(count);
         logger.info("当前最小负载节点"+host+"客户端"+count+"个");
         return host;
-    }
-
-
-    /**
-    *   @desc : 获取并缓存一个token
-    *   @auth : TYF
-    *   @date : 2020/3/16 - 23:46
-    */
-    @Override
-    public String getCachedToken(Long clientId) {
-        String token = UUID.randomUUID().toString();
-        //60秒过期
-        redisDao.setString(tokenPrefix+token,String.valueOf(clientId),60);
-        return token;
     }
 
 

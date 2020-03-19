@@ -41,14 +41,20 @@ public class ServerUtil {
     *   @auth : TYF
     *   @date : 2020-03-19 - 16:57
     */
-    public void registry()throws Exception{
+    public void registry(){
         String addr = IPUtil.getLocalHostIp()+":"+port;
         String childNode = parentPath+"/"+addr;
-        zkClient.create()
-                .creatingParentsIfNeeded()
-                .withMode(CreateMode.EPHEMERAL)
-                .forPath(childNode,"online".getBytes());
-        logger.info("netty注册成功 ..");
+        try {
+            zkClient.create()
+                    .creatingParentsIfNeeded()
+                    .withMode(CreateMode.EPHEMERAL)
+                    .forPath(childNode,"online".getBytes());
+            logger.info("netty注册成功 ..");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            logger.info("netty注册失败 ..");
+        }
     }
 
     /**

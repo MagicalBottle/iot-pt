@@ -107,12 +107,7 @@ public class PTServer {
     */
     public void registry(){
         new Thread(()->{
-            try {
-                serverUtil.registry();
-            }catch (Exception e){
-                e.printStackTrace();
-                logger.info("netty注册失败");
-            }
+            serverUtil.registry();
         }).start();
     }
 

@@ -36,16 +36,11 @@ public class RouterController {
         //客户端编号
         Long client_id = RequestUtil.getLong(req,"client_id",-1L);
 
-        //这里可以对客户端编号进行鉴权
-        String token = routerService.getCachedToken(client_id);
-
-
         //服务器host
         String host = routerService.getOneOnlinePT();
 
         //响应
         JSONObject res = new JSONObject();
-        res.put("token",token);
         res.put("host",host);
         res.put("state",1);
         ResponseUtil.ajaxOutputSTR(resp,res.toJSONString());

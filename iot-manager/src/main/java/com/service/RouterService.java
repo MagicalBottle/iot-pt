@@ -13,8 +13,6 @@ public interface RouterService {
 
     String getOneOnlinePT() throws Exception;
 
-    String getCachedToken(Long clientId);
-
     JSONObject getPtStatus();
 
     JSONObject getClientHeart();
