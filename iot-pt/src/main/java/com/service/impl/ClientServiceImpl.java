@@ -2,6 +2,7 @@ package com.service.impl;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.excep.MsgExecutorBusyException;
 import com.service.ClientService;
 import com.utils.*;
 import io.netty.buffer.ByteBuf;
@@ -48,10 +49,8 @@ public class ClientServiceImpl implements ClientService {
 
 
     //消息处理线程池
-    public static ExecutorService msgExecutor = new ThreadPoolExecutor(150, 300,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
+    public static ExecutorService msgExecutor = new ThreadPoolExecutor(150, 300,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(5000),new MsgExecutorBusyException());
 
-    //缓存处理线程池
-    public static ExecutorService cacheExecutor = new ThreadPoolExecutor(25, 50,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
 
 
     /**

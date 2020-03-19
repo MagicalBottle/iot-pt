@@ -61,8 +61,7 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         String clientId = clientUtil.loadClientId(ctx.channel());
         logger.info("退出连接(channelInactive),清除系列缓存 clientId:"+clientId);
-        //这里内存溢出风险,登陆时连接断开,先delete后add造成已断开的channel被缓存。
-        //目前定期遍历map将无用channel手动清除
+        //这里有bug,登陆时连接断开,add在delete后执行造成已断开的channel被缓存。
         clientService.removeCache(clientId);
         super.channelInactive(ctx);
     }
@@ -78,7 +77,6 @@ public class PTHandler extends SimpleChannelInboundHandler<String> {
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         ClientServiceImpl.msgExecutor.execute(()->{
             //消息预处理
-            //TODO  线程池拒绝任务提交处理
             clientService.msgPreExecute(ctx.channel(),msg);
         });
         return;
