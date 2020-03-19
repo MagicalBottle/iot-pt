@@ -61,12 +61,14 @@ public class ClientServiceImpl implements ClientService {
      */
     @Override
     public void saveCache(Channel channel, String clientId) {
-        //缓存通道信息
-        clientUtil.saveChannel(channel,clientId);
-        //缓存登陆信息
-        loginUtil.saveLoginInfo(clientId);
-        //创建限流器
-        limiterUtil.saveChannelLimiter(clientId);
+        if(channel.isActive()){
+            //缓存通道信息
+            clientUtil.saveChannel(channel,clientId);
+            //缓存登陆信息
+            loginUtil.saveLoginInfo(clientId);
+            //创建限流器
+            limiterUtil.saveChannelLimiter(clientId);
+        }
     }
 
     /**
@@ -139,7 +141,6 @@ public class ClientServiceImpl implements ClientService {
         //客户端已登陆
         else{
             //缓存心跳时间
-            logger.info("客户端心跳 clientId"+clientId+",heart="+heart);
             heartUtil.saveHeartInfo(clientId);
             //返回心跳响应
             msgResp(channel,"0x12");
