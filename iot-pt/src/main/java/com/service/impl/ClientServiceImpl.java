@@ -4,8 +4,7 @@ package com.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.util.concurrent.RateLimiter;
 import com.service.ClientService;
-import com.utils.IPUtil;
-import com.utils.StringUtils;
+import com.utils.*;
 import com.utils.redis.RedisDao;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -33,45 +32,27 @@ public class ClientServiceImpl implements ClientService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+
     @Autowired
-    private RedisDao redisDao;
+    private ClientUtil clientUtil;
 
-    //redis登陆信息缓存前缀
-    @Value("${client.login.redis.prefix}")
-    private String loginPrefix;
+    @Autowired
+    private LimiterUtil limiterUtil;
 
-    //redis心跳信息缓存前缀
-    @Value("${client.heart.redis.prefix}")
-    private String heartPrefix;
+    @Autowired
+    private HeartUtil heartUtil;
 
-    //netty启动端口
-    @Value("${netty.port}")
-    private int port;
+    @Autowired
+    private LoginUtil loginUtil;
 
-    //全局每秒令牌数
-    @Value("${global.limiter.ticket.count}")
-    private Integer globalCount;
 
-    //单独客户端每秒令牌数
-    @Value("${channel.limiter.ticket.count}")
-    private Integer channelCount;
 
     //最大客户端连接数
     @Value("${netty.client.size.max}")
     private Integer clientMaxSize;
 
-    //通道缓存
-    private static Map<String,Channel> channelMap = new ConcurrentHashMap<>();
 
-    public static Map<String, Channel> getChannelMap() {
-        return channelMap;
-    }
 
-    //全局限流器
-    private static RateLimiter globalLimiter;
-
-    //通道限流器
-    private static Map<String,RateLimiter> channelLimiter = new ConcurrentHashMap<>();
 
     //消息处理线程池
     public static ExecutorService msgExecutor = new ThreadPoolExecutor(150, 300,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
@@ -80,141 +61,12 @@ public class ClientServiceImpl implements ClientService {
     public static ExecutorService cacheExecutor = new ThreadPoolExecutor(25, 50,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
 
 
-    /**
-    *   @desc : 静态参数初始化
-    *   @auth : TYF
-    *   @date : 2020-03-19 - 16:15
-    */
-    @PostConstruct
-    private void init(){
-        globalLimiter = RateLimiter.create(globalCount);
-        logger.info("全局客户端消息每秒限制"+globalCount+"条");
-    }
-    
-    /**
-    *   @desc : 通过channel查找clientId
-    *   @auth : TYF
-    *   @date : 2020/3/17 - 19:39
-    */
-    @Override
-    public String loadClientId(Channel channel) {
-        AttributeKey<String> key = AttributeKey.valueOf("clientId");
-        Attribute<String> attr = channel.attr(key);
-        String clientId= attr.get();
-        return clientId;
-    }
 
 
-    /**
-    *   @desc : 保存client
-    *   @auth : TYF
-    *   @date : 2020/3/17 - 20:10
-    */
-    @Override
-    public void saveChannel(Channel channel,String clientId) {
-        if(clientId==null){
-            logger.info("clientId为空保存channel失败");
-            return;
-        }
-        //clientId放到channel内置属性中,方便channel查找clientId
-        AttributeKey<String> key = AttributeKey.valueOf("clientId");
-        Attribute<String> attr = channel.attr(key);
-        attr.set(clientId);
-        //再将channel保存到map中
-        channelMap.put(clientId,channel);
-    }
-
-    /**
-    *   @desc : 清除通道缓存
-    *   @auth : TYF
-    *   @date : 2020/3/17 - 20:14
-    */
-    @Override
-    public void deleteChannel(String clientId) {
-        if(clientId!=null){
-            channelMap.remove(clientId);
-        }
-    }
 
 
-    /**
-     *   @desc : 缓存登陆信息
-     *   @auth : TYF
-     *   @date : 2020-03-18 - 13:28
-     */
-    @Override
-    public void saveLoginInfo(String clientId) {
-        String key = loginPrefix+clientId;
-        String value = IPUtil.getLocalHostIp()+":"+port;
-        redisDao.setString(key,value);
-    }
-
-    /**
-     *   @desc : 清除登录信息
-     *   @auth : TYF
-     *   @date : 2020-03-18 - 13:28
-     */
-    @Override
-    public void deleteLoginInfo(String clientId) {
-        String key = loginPrefix+clientId;
-        redisDao.delString(key);
-    }
-
-    /**
-    *   @desc : 缓存心跳信息
-    *   @auth : TYF
-    *   @date : 2020-03-18 - 13:35
-    */
-    @Override
-    public void saveHeartInfo(String clientId) {
-        String key = heartPrefix+clientId;
-        //缓存心跳时间1小时过期 需要比协议心跳间隔时间长
-        redisDao.setString(key,String.valueOf(System.currentTimeMillis()),60*60);
-    }
 
 
-    /**
-     *   @desc : 清除channel限流器
-     *   @auth : TYF
-     *   @date : 2020/3/17 - 20:49
-     */
-    @Override
-    public void deleteChannelLimiter(String clientId) {
-        if(clientId!=null){
-            channelLimiter.remove(clientId);
-        }
-    }
-
-    /**
-     *   @desc : 创建限流器
-     *   @auth : TYF
-     *   @date : 2020-03-18 - 15:04
-     */
-    @Override
-    public void saveChannelLimiter(String clientId) {
-        logger.info("单个客户端消息每秒限制"+channelCount+"条");
-        channelLimiter.put(clientId, RateLimiter.create(channelCount));
-    }
-
-    /**
-     *   @desc : 全局客户端消息限流
-     *   @auth : TYF
-     *   @date : 2020-03-16 - 14:13
-     */
-    @Override
-    public boolean tryGlobalAcquire() {
-        return globalLimiter.tryAcquire();
-    }
-
-    /**
-     *   @desc : 单独客户端消息限流
-     *   @auth : TYF
-     *   @date : 2020-03-16 - 14:13
-     */
-    @Override
-    public boolean tryChannelAcquire(String clientId) {
-        return channelLimiter.get(clientId).tryAcquire();
-    }
 
 
     /**
@@ -225,11 +77,11 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void saveCache(Channel channel, String clientId) {
         //缓存通道信息
-        saveChannel(channel,clientId);
+        clientUtil.saveChannel(channel,clientId);
         //缓存登陆信息
-        saveLoginInfo(clientId);
+        loginUtil.saveLoginInfo(clientId);
         //创建限流器
-        saveChannelLimiter(clientId);
+        limiterUtil.saveChannelLimiter(clientId);
     }
 
     /**
@@ -240,11 +92,11 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void removeCache(String clientId) {
         //清除channel缓存
-        deleteChannel(clientId);
+        clientUtil.deleteChannel(clientId);
         //清除限流器
-        deleteChannelLimiter(clientId);
+        limiterUtil.deleteChannelLimiter(clientId);
         //清除login缓存
-        deleteLoginInfo(clientId);
+        loginUtil.deleteLoginInfo(clientId);
     }
 
 
@@ -285,7 +137,7 @@ public class ClientServiceImpl implements ClientService {
     public void clientLogin(Channel channel, JSONObject msg) {
         String clientId = msg.getString("client_id");
         //不超过客户端最高连接数
-        if(ClientServiceImpl.getChannelMap().size()>=clientMaxSize){
+        if(ClientUtil.getChannelMap().size()>=clientMaxSize){
             clientError(channel,"当前服务器节点负载上限,请切换节点登陆",msg.toJSONString());
             channel.close();
             logger.info("当前服务器节点负载上限拒绝连接 clientId="+clientId);
@@ -309,7 +161,7 @@ public class ClientServiceImpl implements ClientService {
      */
     @Override
     public boolean clientIsLogin(Channel channel) {
-        String clientId = loadClientId(channel);
+        String clientId = clientUtil.loadClientId(channel);
         return !(clientId==null);
     }
 
@@ -321,7 +173,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void clientHeart(Channel channel, String heart) {
         //找到clientId
-        String clientId = loadClientId(channel);
+        String clientId = clientUtil.loadClientId(channel);
         //客户端未登陆
         if(clientId==null){
             logger.info("未登录,请别发心跳!");
@@ -331,7 +183,7 @@ public class ClientServiceImpl implements ClientService {
         //客户端已登陆
         else{
             //缓存心跳时间
-            saveHeartInfo(clientId);
+            heartUtil.saveHeartInfo(clientId);
             //返回心跳响应
             msgResp(channel,"0x12");
         }
@@ -392,7 +244,7 @@ public class ClientServiceImpl implements ClientService {
         }
 
         //全局消息限流
-        if(!tryGlobalAcquire()){
+        if(!limiterUtil.tryGlobalAcquire()){
             logger.info("触发全局限流,请重试");
             clientError(channel,"触发全局限流,请重试",msg);
             return;

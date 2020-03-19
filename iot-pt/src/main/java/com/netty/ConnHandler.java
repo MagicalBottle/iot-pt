@@ -2,6 +2,7 @@ package com.netty;
 
 import com.service.ClientService;
 import com.service.impl.ClientServiceImpl;
+import com.utils.ClientUtil;
 import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,8 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
     @Autowired
     private ClientService clientService;
 
-
+    @Autowired
+    private ClientUtil clientUtil;
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -47,7 +49,7 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
     */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        String clientId = clientService.loadClientId(ctx.channel());
+        String clientId = clientUtil.loadClientId(ctx.channel());
         logger.info("客户端退出连接,清除系列缓存 clientId:"+clientId);
         clientService.removeCache(clientId);
         super.channelInactive(ctx);

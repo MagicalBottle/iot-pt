@@ -1,8 +1,8 @@
 package com.netty;
 
-import com.service.PTService;
-import com.service.impl.ClientServiceImpl;
+import com.utils.ClientUtil;
 import com.utils.IPUtil;
+import com.utils.redis.RedisDao;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -11,6 +11,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +27,19 @@ import java.util.TimerTask;
 @Component
 public class PTServer {
 
+    @Value("${pt.server.zk.path}")
+    private String parentPath;
     @Value("${netty.port}")
     private int port;
-    @Autowired
-    private PTService ptService;
+    @Value("${client.count.redis.prefix}")
+    private String clientCountPrefix;
     @Autowired
     private ConnHandler connHandler;
+    @Autowired
+    private CuratorFramework zkClient;
+    @Autowired
+    private RedisDao redisDao;
+
 
     private  Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -108,8 +117,12 @@ public class PTServer {
     public void registry(){
         new Thread(()->{
             try {
-                String addr = IPUtil.getLocalHostIp();
-                ptService.registryToZk(addr,port);
+                String addr = IPUtil.getLocalHostIp()+":"+port;
+                String childNode = parentPath+"/"+addr;
+                zkClient.create()
+                        .creatingParentsIfNeeded()
+                        .withMode(CreateMode.EPHEMERAL)
+                        .forPath(childNode,"online".getBytes());
                 logger.info("netty注册成功 ..");
             }catch (Exception e){
                 e.printStackTrace();
@@ -124,16 +137,19 @@ public class PTServer {
     *   @date : 2020-03-17 - 13:19
     */
     public void clientCountReport(){
-        Integer expire = 15;//上报间隔时间
+        //上报间隔时间
+        Integer expire = 15;
         new Thread(()->{
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask(){
                 @Override
                 public void run() {
                     try {
-                        String addr = IPUtil.getLocalHostIp();
-                        int count = ClientServiceImpl.getChannelMap().size();
-                        ptService.clientCountReport(addr,port,count,expire);
+                        int count = ClientUtil.getChannelMap().size();
+                        String addr = IPUtil.getLocalHostIp()+":"+port;
+                        String key = clientCountPrefix+addr;
+                        redisDao.setString(key,String.valueOf(count),expire+5);
+                        logger.info("上报节点客户端数量"+count+"个,本地"+addr);
                     }catch (Exception e){
                         e.printStackTrace();
                         logger.info("客户端数量定时上报失败.");
