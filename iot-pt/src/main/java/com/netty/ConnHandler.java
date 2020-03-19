@@ -28,7 +28,7 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.info("客户端exceptionCaught退出连接:"+ctx.channel().remoteAddress().toString());
         logger.info(cause.toString());
-        //禁用handler的ctx.close()以将close事件进行传递
+        //禁用handler的ctx.close()以将close事件传递到尾部CloseHanlder
         ctx.channel().close();
     }
 
