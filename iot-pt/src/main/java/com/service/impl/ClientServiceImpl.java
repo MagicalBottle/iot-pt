@@ -2,23 +2,17 @@ package com.service.impl;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.util.concurrent.RateLimiter;
 import com.service.ClientService;
 import com.utils.*;
-import com.utils.redis.RedisDao;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -61,14 +55,6 @@ public class ClientServiceImpl implements ClientService {
     public static ExecutorService cacheExecutor = new ThreadPoolExecutor(25, 50,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
 
 
-
-
-
-
-
-
-
-
     /**
      *   @desc : 保存登陆缓存
      *   @auth : TYF
@@ -101,34 +87,6 @@ public class ClientServiceImpl implements ClientService {
 
 
     /**
-     *   @desc : 返回异常信息
-     *   @auth : TYF
-     *   @date : 2020-03-17 - 17:20
-     */
-    @Override
-    public void clientError(Channel channel, String msg, String data) {
-        JSONObject res = new JSONObject();
-        res.put("state",0);
-        res.put("msg",msg);
-        res.put("req",data);
-        msgResp(channel,res.toJSONString());
-    }
-
-    /**
-     *   @desc : 返回成功信息
-     *   @auth : TYF
-     *   @date : 2020-03-17 - 17:20
-     */
-    @Override
-    public void clientSuccess(Channel channel, String msg, String data) {
-        JSONObject res = new JSONObject();
-        res.put("state",1);
-        res.put("msg",msg);
-        res.put("req",data);
-        msgResp(channel,res.toJSONString());
-    }
-
-    /**
      *   @desc : 处理客户端登陆
      *   @auth : TYF
      *   @date : 2020-03-17 - 16:33
@@ -138,7 +96,7 @@ public class ClientServiceImpl implements ClientService {
         String clientId = msg.getString("client_id");
         //不超过客户端最高连接数
         if(ClientUtil.getChannelMap().size()>=clientMaxSize){
-            clientError(channel,"当前服务器节点负载上限,请切换节点登陆",msg.toJSONString());
+            msgResp(channel,MsgUtil.commonMsg(0,"当前节点负载上限拒绝连接",msg.toString()).toJSONString());
             channel.close();
             logger.info("当前服务器节点负载上限拒绝连接 clientId="+clientId);
             return;
@@ -147,7 +105,7 @@ public class ClientServiceImpl implements ClientService {
         //缓存登陆
         saveCache(channel,clientId);
         //返回登录响应
-        clientSuccess(channel,"登陆成功",msg.toJSONString());
+        msgResp(channel,MsgUtil.commonMsg(1,"登陆成功",msg.toString()).toJSONString());
         logger.info("登陆成功,clientId="+clientId);
         return;
     }
@@ -177,7 +135,7 @@ public class ClientServiceImpl implements ClientService {
         //客户端未登陆
         if(clientId==null){
             logger.info("未登录,请别发心跳!");
-            clientError(channel,"未登录,请别发心跳",heart);
+            msgResp(channel,MsgUtil.commonMsg(0,"未登录,请别发心跳",heart).toJSONString());
             channel.close();
         }
         //客户端已登陆
@@ -239,14 +197,14 @@ public class ClientServiceImpl implements ClientService {
         //空消息
         if(msg==null||"".equals(msg)){
             logger.info("客户端消息为空");
-            clientError(channel,"客户端消息为空",msg);
+            msgResp(channel,MsgUtil.commonMsg(0,"客户端消息为空",msg).toJSONString());
             return;
         }
 
         //全局消息限流
         if(!limiterUtil.tryGlobalAcquire()){
             logger.info("触发全局限流,请重试");
-            clientError(channel,"触发全局限流,请重试",msg);
+            msgResp(channel,MsgUtil.commonMsg(0,"触发全局限流,请重试",msg).toJSONString());
             return;
         }
 
@@ -263,7 +221,7 @@ public class ClientServiceImpl implements ClientService {
             }
             catch (Exception e){
                 logger.info("消息格式非标准json");
-                clientError(channel,"消息格式非标准json",msg);
+                msgResp(channel,MsgUtil.commonMsg(0,"消息格式非标准json",msg).toJSONString());
                 return;
             }
         }
@@ -274,7 +232,7 @@ public class ClientServiceImpl implements ClientService {
         String clientId = jObj.getString("client_id");
         if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){
             logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId);
-            clientError(channel,"缺少必传字段",msg);
+            msgResp(channel,MsgUtil.commonMsg(0,"消息缺少必传字段",msg).toJSONString());
             return;
         }
 
@@ -286,11 +244,17 @@ public class ClientServiceImpl implements ClientService {
         //非登陆消息 且未登录
         else if(!clientIsLogin(channel)){
             logger.info("请先登陆!");
-            clientError(channel,"请先登录!",msg);
+            msgResp(channel,MsgUtil.commonMsg(0,"请先登陆",msg).toJSONString());
             return;
         }
         //正常业务消息
         else{
+            //全局消息限流
+            if(!limiterUtil.tryChannelAcquire(clientId)){
+                logger.info("触发客户端限流,请重试");
+                msgResp(channel,MsgUtil.commonMsg(0,"触发客户端限流,请重试",msg).toJSONString());
+                return;
+            }
             clientMsgReSend(channel,jObj);
             return;
         }

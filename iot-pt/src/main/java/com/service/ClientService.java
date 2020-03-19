@@ -13,8 +13,6 @@ public interface ClientService {
 
     //消息处理
     void msgPreExecute(Channel channel, String msg);
-    void clientError(Channel channel, String msg, String data);
-    void clientSuccess(Channel channel, String msg, String data);
     void clientLogin(Channel channel, JSONObject msg);
     boolean clientIsLogin(Channel channel);
     void clientHeart(Channel channel, String msg);

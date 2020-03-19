@@ -1,4 +1,4 @@
-package com.utils.redis;
+package com.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Repository
-public class RedisDao {
+public class RedisUtil {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;

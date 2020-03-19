@@ -1,6 +1,5 @@
 package com.utils;
 
-import com.utils.redis.RedisDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class LoginUtil {
 
     @Autowired
-    private RedisDao redisDao;
+    private RedisUtil redisUtil;
 
     //redis登陆信息缓存前缀
     @Value("${client.login.redis.prefix}")
@@ -32,7 +31,7 @@ public class LoginUtil {
     public void saveLoginInfo(String clientId) {
         String key = loginPrefix+clientId;
         String value = IPUtil.getLocalHostIp()+":"+port;
-        redisDao.setString(key,value);
+        redisUtil.setString(key,value);
     }
 
     /**
@@ -42,7 +41,7 @@ public class LoginUtil {
      */
     public void deleteLoginInfo(String clientId) {
         String key = loginPrefix+clientId;
-        redisDao.delString(key);
+        redisUtil.delString(key);
     }
 
 }

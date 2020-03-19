@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 */
 @Component
 @ChannelHandler.Sharable
-public class ConnHandler extends SimpleChannelInboundHandler<String> {
+public class PTHandler extends SimpleChannelInboundHandler<String> {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -27,30 +27,42 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
     @Autowired
     private ClientUtil clientUtil;
 
+    /**
+    *   @desc : 异常捕获钩子
+    *   @auth : TYF
+    *   @date : 2020-03-19 - 17:04
+    */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.info("客户端exceptionCaught退出连接:"+ctx.channel().remoteAddress().toString());
+        logger.info("退出连接(exceptionCaught):"+ctx.channel().remoteAddress().toString());
         logger.info(cause.toString());
         ctx.channel().close();
     }
 
+    /**
+    *   @desc : 常见连接钩子
+    *   @auth : TYF
+    *   @date : 2020-03-19 - 17:03
+    */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("客户端channelActive主动连接:"+ctx.channel().remoteAddress().toString());
+        logger.info("创建连接(channelActive):"+ctx.channel().remoteAddress().toString());
         ctx.fireChannelActive();
         ctx.flush();
     }
 
 
     /**
-    *   @desc : 有并发问题,比如登陆成功后立即掉线->删除缓存->添加缓存的顺序,暂用缓存延迟清空的方式来解决
+    *   @desc : 退出连接钩子
     *   @auth : TYF
     *   @date : 2020-03-19 - 15:31
     */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         String clientId = clientUtil.loadClientId(ctx.channel());
-        logger.info("客户端退出连接,清除系列缓存 clientId:"+clientId);
+        logger.info("退出连接(channelInactive),清除系列缓存 clientId:"+clientId);
+        //这里内存溢出风险,登陆时连接断开,先delete后add造成已断开的channel被缓存。
+        //目前定期遍历map将无用channel手动清除
         clientService.removeCache(clientId);
         super.channelInactive(ctx);
     }

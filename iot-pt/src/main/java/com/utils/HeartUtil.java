@@ -1,6 +1,5 @@
 package com.utils;
 
-import com.utils.redis.RedisDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class HeartUtil {
 
     @Autowired
-    private RedisDao redisDao;
+    private RedisUtil redisUtil;
 
     //redis心跳信息缓存前缀
     @Value("${client.heart.redis.prefix}")
@@ -28,7 +27,7 @@ public class HeartUtil {
     public void saveHeartInfo(String clientId) {
         String key = heartPrefix+clientId;
         //缓存心跳时间1小时过期 需要比协议心跳间隔时间长
-        redisDao.setString(key,String.valueOf(System.currentTimeMillis()),60*60);
+        redisUtil.setString(key,String.valueOf(System.currentTimeMillis()),60*60);
     }
 
 }
