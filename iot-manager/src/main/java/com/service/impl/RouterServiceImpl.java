@@ -32,9 +32,6 @@ public class RouterServiceImpl implements RouterService {
     @Value("${client.count.redis.prefix}")
     private String clientCountPrefix;
 
-    @Value("${pt.server.ip.transfer}")
-    private String ipTransfer;
-
     @Autowired
     private CuratorFramework zkClient;
 
@@ -110,13 +107,6 @@ public class RouterServiceImpl implements RouterService {
         Integer count = Collections.min(nodes.keySet());
         //内网地址
         String host = nodes.get(count);
-        //转为外网地址
-        JSONObject ipSet = JSONObject.parseObject(ipTransfer);
-        ipSet.keySet().stream().forEach(key->{
-            if(host.contains(key)){
-                host.replace(key,ipSet.getString(key));
-            }
-        });
         logger.info("当前最小负载节点"+host+"客户端"+count+"个");
         return host;
     }
@@ -163,7 +153,9 @@ public class RouterServiceImpl implements RouterService {
     @Override
     public JSONObject getClientHeart() {
 
-        return null;
+        //批量前缀模糊查询
+        JSONObject res = redisDao.getStringByPrefix(heartPrefix);
+        return res;
 
     }
 
@@ -177,7 +169,9 @@ public class RouterServiceImpl implements RouterService {
     @Override
     public JSONObject getClientConn() {
 
-        return null;
+        //批量前缀模糊查询
+        JSONObject res = redisDao.getStringByPrefix(loginPrefix);
+        return res;
 
     }
 

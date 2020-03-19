@@ -10,6 +10,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,9 @@ public class PTServer {
     @Autowired
     private PTService ptService;
     @Autowired
-    private PTHandler ptHandler;
+    private ConnHandler connHandler;
+    @Autowired
+    private CloseHandler closeHandler;
 
     private  Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -54,14 +57,16 @@ public class PTServer {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline()
+                                    //关闭监听保证客户端缓存能够清除
+                                    .addLast(closeHandler)
                                     //解决TCP拆包
                                     .addLast(new LineBasedFrameDecoder(1024))
                                     //客户端消息反序列化
                                     .addLast(new StringDecoder(Charset.forName("UTF-8")))
                                     //客户端35s无新消息踢掉连接
-                                    //.addLast(new ReadTimeoutHandler(35))
+                                    .addLast(new ReadTimeoutHandler(35))
                                     //业务消息处理
-                                    .addLast(ptHandler);
+                                    .addLast(connHandler);
                         }
                     });
             f = b.bind().sync();
