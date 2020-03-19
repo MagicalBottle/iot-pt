@@ -31,8 +31,6 @@ public class PTServer {
     private PTService ptService;
     @Autowired
     private ConnHandler connHandler;
-    @Autowired
-    private CloseHandler closeHandler;
 
     private  Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -57,8 +55,6 @@ public class PTServer {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline()
-                                    //关闭监听保证客户端缓存能够清除
-                                    .addLast(closeHandler)
                                     //解决TCP拆包
                                     .addLast(new LineBasedFrameDecoder(1024))
                                     //客户端消息反序列化

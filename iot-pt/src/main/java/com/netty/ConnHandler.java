@@ -1,7 +1,7 @@
 package com.netty;
 
-import com.service.PTService;
-import com.service.impl.PTServiceImpl;
+import com.service.ClientService;
+import com.service.impl.ClientServiceImpl;
 import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,14 +21,14 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private PTService ptService;
+    private ClientService clientService;
+
 
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.info("客户端exceptionCaught退出连接:"+ctx.channel().remoteAddress().toString());
         logger.info(cause.toString());
-        //禁用handler的ctx.close()以将close事件传递到尾部CloseHanlder
         ctx.channel().close();
     }
 
@@ -40,9 +40,16 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
     }
 
 
+    /**
+    *   @desc : 有并发问题,比如登陆成功后立即掉线->删除缓存->添加缓存的顺序,暂用缓存延迟清空的方式来解决
+    *   @auth : TYF
+    *   @date : 2020-03-19 - 15:31
+    */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("客户端channelInactive退出连接:"+ctx.channel().remoteAddress().toString());
+        String clientId = clientService.loadClientId(ctx.channel());
+        logger.info("客户端退出连接,清除系列缓存 clientId:"+clientId);
+        clientService.removeCache(clientId);
         super.channelInactive(ctx);
     }
 
@@ -55,10 +62,10 @@ public class ConnHandler extends SimpleChannelInboundHandler<String> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-        PTServiceImpl.msgExecutor.execute(()->{
+        ClientServiceImpl.msgExecutor.execute(()->{
             //消息预处理
             //TODO  线程池拒绝任务提交处理
-            ptService.msgPreExecute(ctx.channel(),msg);
+            clientService.msgPreExecute(ctx.channel(),msg);
         });
         return;
     }

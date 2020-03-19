@@ -1,6 +1,5 @@
 package com.service;
 
-import io.netty.channel.Channel;
 
 public interface PTService {
 
@@ -8,6 +7,5 @@ public interface PTService {
 
     void clientCountReport(String host,int port,int count,int exipre) throws Exception;
 
-    void msgPreExecute(Channel channel, String msg);
 
 }

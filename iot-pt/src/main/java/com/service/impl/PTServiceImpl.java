@@ -2,10 +2,7 @@ package com.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.service.ClientService;
-import com.service.LimiterService;
-import com.service.MsgService;
 import com.service.PTService;
-import com.utils.CommonMsgResult;
 import com.utils.StringUtils;
 import com.utils.redis.RedisDao;
 import io.netty.channel.Channel;
@@ -35,21 +32,8 @@ public class PTServiceImpl implements PTService {
     @Value("${client.count.redis.prefix}")
     private String clientCountPrefix;
 
-    //消息限流器
-    @Autowired
-    private LimiterService limiterService;
-
-    //消息处理器
-    @Autowired
-    private MsgService msgService;
-
     @Autowired
     private RedisDao redisDao;
-
-    //消息处理线程池
-    //消息数约1秒3000条
-    public static ExecutorService msgExecutor = new ThreadPoolExecutor(150, 300,60L, TimeUnit.SECONDS,new ArrayBlockingQueue(2000));
-
 
     /**
     *   @desc : 注册netty服务到zk
@@ -85,74 +69,6 @@ public class PTServiceImpl implements PTService {
     }
 
 
-    /**
-     *   @desc : 消息预处理(心跳和登陆)
-     *   @auth : TYF
-     *   @date : 2020-03-16 - 15:24
-     */
-    @Override
-    public void msgPreExecute(Channel channel, String msg) {
 
-        //空消息
-        if(msg==null||"".equals(msg)){
-            logger.info("客户端消息为空");
-            msgService.clientError(channel,"客户端消息为空",msg);
-            return;
-        }
-
-        //全局消息限流
-        if(!limiterService.tryGlobalAcquire()){
-            logger.info("触发全局限流,请重试");
-            msgService.clientError(channel,"触发全局限流,请重试",msg);
-            return;
-        }
-
-        //心跳消息
-        JSONObject jObj;
-        if(msg.contains("0x11")){
-            msgService.clientHeart(channel,msg);
-            return;
-        }
-        //非心跳消息
-        else{
-            try {
-                jObj = JSONObject.parseObject(msg);
-            }
-            catch (Exception e){
-                logger.info("消息格式非标准json");
-                msgService.clientError(channel,"消息格式非标准json",msg);
-                return;
-            }
-        }
-
-        //命令名称
-        String serviceName = jObj.getString("service_name");
-        //客户端编号
-        String clientId = jObj.getString("client_id");
-        if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){
-            logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId);
-            msgService.clientError(channel,"缺少必传字段",msg);
-            return;
-        }
-
-        //登陆消息
-        if("login".equals(serviceName)){
-            msgService.clientLogin(channel,jObj);
-            return;
-        }
-        //非登陆消息 且未登录
-        else if(!msgService.clientIsLogin(channel)){
-            logger.info("请先登陆!");
-            msgService.clientError(channel,"请先登录!",msg);
-            return;
-        }
-        //正常业务消息
-        else{
-            msgService.clientMsgReSend(channel,jObj);
-            return;
-        }
-
-
-    }
 
 }
