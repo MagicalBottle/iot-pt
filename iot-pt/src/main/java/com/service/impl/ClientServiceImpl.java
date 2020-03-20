@@ -2,9 +2,11 @@ package com.service.impl;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.config.AmqpConfig;
 import com.excep.MsgExecutorBusyException;
 import com.service.ClientService;
 import com.utils.*;
+import com.utils.amqp.AmqpSender;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -44,6 +46,9 @@ public class ClientServiceImpl implements ClientService {
     //最大客户端连接数
     @Value("${netty.client.size.max}")
     private Integer clientMaxSize;
+
+    @Autowired
+    private AmqpSender amqpSender;
 
 
 
@@ -152,17 +157,10 @@ public class ClientServiceImpl implements ClientService {
      *   @date : 2020-03-17 - 16:36
      */
     @Override
-    public void clientMsgReSend(Channel channel, JSONObject msg) {
+    public void clientMsgReSend(JSONObject msg) {
 
-        //下行消息的ack推入redis消费端主动轮询
-        String ackId = msg.getString("ack_id");
-        if(ackId!=null&&!"".equals(ackId)){
-
-        }
-        //主动上行消息推入mq消费端被动消费
-        else{
-
-        }
+        //消息全部推入mq
+        amqpSender.sendMsg(AmqpConfig.exchangeName,AmqpConfig.upQueueName,msg);
 
     }
 
@@ -194,6 +192,19 @@ public class ClientServiceImpl implements ClientService {
     }
 
 
+    /**
+    *   @desc : 消息解析并下行下行
+    *   @auth : TYF
+    *   @date : 2020/3/20 - 22:53
+    */
+    @Override
+    public void msgResp(JSONObject content) {
+        //命令名称
+        String serviceName = content.getString("service_name");
+        //客户端id
+        String client_id = content.getString("client_id");
+
+    }
 
     /**
      *   @desc : 消息预处理(心跳和登陆)
@@ -239,8 +250,13 @@ public class ClientServiceImpl implements ClientService {
         String serviceName = jObj.getString("service_name");
         //客户端编号
         String clientId = jObj.getString("client_id");
-        if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)){
-            logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId);
+        //消息编号
+        String ackId = jObj.getString("ack_id");
+        //消息体
+        JSONObject content = jObj.getJSONObject("content");
+
+        if(!StringUtils.isNotNull(serviceName)||!StringUtils.isNotNull(clientId)||!StringUtils.isNotNull(ackId)){
+            logger.info("消息缺少必传字段,serviceName="+serviceName+",clientId="+clientId+",ackId="+ackId);
             msgResp(channel,MsgUtil.commonMsg(0,"消息缺少必传字段",msg).toJSONString());
             return;
         }
@@ -264,7 +280,7 @@ public class ClientServiceImpl implements ClientService {
                 msgResp(channel,MsgUtil.commonMsg(0,"触发客户端限流,请重试",msg).toJSONString());
                 return;
             }
-            clientMsgReSend(channel,jObj);
+            clientMsgReSend(jObj);
             return;
         }
 

@@ -16,8 +16,9 @@ public interface ClientService {
     void clientLogin(Channel channel, JSONObject msg);
     boolean clientIsLogin(Channel channel);
     void clientHeart(Channel channel, String msg);
-    void clientMsgReSend(Channel channel,JSONObject msg);
+    void clientMsgReSend(JSONObject msg);
     //消息下行
+    void msgResp(JSONObject content);
     void msgResp(Channel channel,String msg);
 
 }
