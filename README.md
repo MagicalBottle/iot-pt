@@ -5,7 +5,7 @@ http服务器，支持集群部署
 
 #2.iot-pt
 
-TCP服务器，支持集群部署，需要zk维护多节点  
+tcp服务器，支持集群部署，需要zk维护多节点  
 用于iot或im客户端连接等  
 
 支持客户端消息上下行等消息透传  
@@ -14,17 +14,27 @@ TCP服务器，支持集群部署，需要zk维护多节点
 支持节点单个客户端消息限流  
 支持下行消息ACK  
 
+#3.iot-msg
 
-需要组件 zk redis  
+http服务器，支持集群部署  
+用于消息异步处理  
 
-#协议解析
+#4.依赖组件
+
+zk redis rabbitmq  
+
+#5.协议解析
 {  
   "service_name": "login",  
   "client_id": "camera_xst007",  
   "ack_id": "ack_188890",  
   "content": {}  
 }  
-service_name:协议名称,除login之外可以自定义(必传)  
-client_id:客户端编号(必传)  
-ack_id:交互编号,请求-响应机制的上下行交互匹配(必传)  
-content:协议自定义字段(非必传)  
+service_name：协议名称,除login之外可以自定义(必传)  
+client_id：客户端编号(必传)  
+ack_id：交互编号,请求-响应机制的上下行交互匹配(必传)  
+content：协议自定义字段(非必传)  
+
+#6.消息流转
+TODO  
+
