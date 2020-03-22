@@ -51,6 +51,8 @@ public class AmqpConfig {
 
     public final static String exchangeName = "msg_handler_exchange";
 
+    public final static String upQueueName = "msg:up";
+
 
     //连接配置
     @Bean
@@ -99,7 +101,14 @@ public class AmqpConfig {
         return BindingBuilder.bind(downQueue()).to(msgHandlerExchange()).with(channelDownPrefix+NodeUtil.getNettyNodeName(nport));
     }
 
-
-
+    //队列(上行消息)
+    @Bean
+    public Queue upQueue(){
+        return new Queue(upQueueName,true);
+    }
+    @Bean
+    public Binding upQueueBind(){
+        return BindingBuilder.bind(upQueue()).to(msgHandlerExchange()).with(upQueueName);
+    }
 
 }

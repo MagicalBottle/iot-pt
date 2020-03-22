@@ -47,9 +47,7 @@ public class AmqpConfig {
 
     public final static String exchangeName = "msg_handler_exchange";
 
-    public final static String downQueueName = "msg_handler_queue_down";
-
-    public final static String upQueueName = "msg_handler_queue_up";
+    public final static String upQueueName = "msg:up";
 
 
     //连接配置
@@ -89,6 +87,7 @@ public class AmqpConfig {
         return new DirectExchange(exchangeName);
     }
 
+
     //队列(上行消息)
     @Bean
     public Queue upQueue(){
@@ -97,17 +96,6 @@ public class AmqpConfig {
     @Bean
     public Binding upQueueBind(){
         return BindingBuilder.bind(upQueue()).to(msgHandlerExchange()).with(upQueueName);
-    }
-
-
-    //队列(下行消息)
-    @Bean
-    public Queue downQueue(){
-        return new Queue(downQueueName,true);
-    }
-    @Bean
-    public Binding downQueueBind(){
-        return BindingBuilder.bind(downQueue()).to(msgHandlerExchange()).with(downQueueName);
     }
 
 

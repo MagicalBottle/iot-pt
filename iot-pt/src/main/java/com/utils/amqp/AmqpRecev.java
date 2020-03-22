@@ -32,7 +32,6 @@ public class AmqpRecev {
      */
     @RabbitListener(queues="#{downQueue.name}",containerFactory="customContainerFactory")
     public void istPayRealCallbackQueue(Message mes){
-
         try {
             JSONObject content = toObject(mes.getBody());
             clientService.msgResp(content);
@@ -41,7 +40,6 @@ public class AmqpRecev {
             e.printStackTrace();
             logger.info("消息异常,下发客户端失败");
         }
-
     }
 
 
