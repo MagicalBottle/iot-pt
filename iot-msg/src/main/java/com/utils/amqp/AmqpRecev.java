@@ -35,7 +35,7 @@ public class AmqpRecev {
     public void istPayRealCallbackQueue(Message mes){
 
         try {
-            JSONObject obj = toObject(mes.getBody());
+            JSONObject obj = JSONObject.parseObject(new String(mes.getBody()));
             logger.info("上行消息:"+obj);
             upService.msgHandler(obj);
         }
@@ -46,24 +46,6 @@ public class AmqpRecev {
 
     }
 
-
-    public JSONObject toObject (byte[] bytes) {
-        Object obj = null;
-        JSONObject msg = null;
-        try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream (bis);
-            obj = ois.readObject();
-            msg = (JSONObject)obj;
-            ois.close();
-            bis.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-        }
-        return msg;
-    }
 
 
 }

@@ -2,6 +2,7 @@ package com.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.service.MsgUpService;
+import org.springframework.stereotype.Service;
 
 
 /**
@@ -9,6 +10,7 @@ import com.service.MsgUpService;
 *   @auth : TYF
 *   @date : 2020/3/22 - 20:10
 */
+@Service
 public class MsgUpServiceImpl implements MsgUpService {
 
     /**

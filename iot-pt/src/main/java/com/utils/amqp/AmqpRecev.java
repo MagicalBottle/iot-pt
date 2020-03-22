@@ -33,32 +33,13 @@ public class AmqpRecev {
     @RabbitListener(queues="#{downQueue.name}",containerFactory="customContainerFactory")
     public void istPayRealCallbackQueue(Message mes){
         try {
-            JSONObject content = toObject(mes.getBody());
+            JSONObject content = JSONObject.parseObject(new String(mes.getBody()));
             clientService.msgResp(content);
         }
         catch (Exception e){
             e.printStackTrace();
             logger.info("消息异常,下发客户端失败");
         }
-    }
-
-
-    public JSONObject toObject (byte[] bytes) {
-        Object obj = null;
-        JSONObject msg = null;
-        try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream (bis);
-            obj = ois.readObject();
-            msg = (JSONObject)obj;
-            ois.close();
-            bis.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-        }
-        return msg;
     }
 
 
