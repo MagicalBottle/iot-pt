@@ -21,7 +21,7 @@ http服务器，支持集群部署
 
 #4.依赖组件
 
-zk:用于TCP服务端节点动态上下线  
+zk：用于TCP服务端节点动态上下线  
 redis：缓存客户端login信息，缓存客户端heart信息  
 rabbitmq：TCP服务端节点监听各自的下行queue节点，msg消息处理节点监听工共的上行queue节点  
 
