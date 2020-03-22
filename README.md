@@ -1,4 +1,4 @@
-#1.iot-manager
+#1.iot-router
 
 http服务器，支持集群部署  
 用于设备预登陆，登陆鉴权和路由等  
