@@ -9,11 +9,11 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.ist</groupId>
-	<artifactId>manager</artifactId>
+	<artifactId>router</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>manager</name>
-	<description>manager</description>
+	<name>router</name>
+	<description>router</description>
 
 	<properties>
 		<java.version>1.8</java.version>
