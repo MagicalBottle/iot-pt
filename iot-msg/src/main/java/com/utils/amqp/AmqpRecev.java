@@ -31,7 +31,7 @@ public class AmqpRecev {
      *   @auth : TYF
      *   @date : 2019-10-17 - 14:32
      */
-    @RabbitListener(queues= AmqpConfig.upQueueName,containerFactory="customContainerFactory")
+    @RabbitListener(queues=AmqpConfig.upQueueName,containerFactory="customContainerFactory")
     public void istPayRealCallbackQueue(Message mes){
 
         try {
