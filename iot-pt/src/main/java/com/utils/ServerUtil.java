@@ -66,13 +66,13 @@ public class ServerUtil {
         //上报间隔时间
         Integer expire = 15;
         Timer timer = new Timer();
+        String nodeName = NodeUtil.getNettyNodeName(port);
+        String key = clientCountPrefix+nodeName;
         timer.scheduleAtFixedRate(new TimerTask(){
             @Override
             public void run() {
                 try {
                     int count = ClientUtil.getChannelMap().size();
-                    String nodeName = NodeUtil.getNettyNodeName(port);
-                    String key = clientCountPrefix+nodeName;
                     redisUtil.setString(key,String.valueOf(count),expire+5);
                     logger.info("节点"+nodeName+"客户端"+count+"个");
                 }catch (Exception e){
