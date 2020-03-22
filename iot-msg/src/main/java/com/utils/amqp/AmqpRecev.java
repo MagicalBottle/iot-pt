@@ -1,13 +1,14 @@
 package com.utils.amqp;
 
 import com.alibaba.fastjson.JSONObject;
-import com.service.ClientService;
+import com.config.AmqpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,24 +23,22 @@ public class AmqpRecev {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private ClientService clientService;
 
     /**
-     *   @desc : 下行消息处理,各个netty节点监听各自队列的消息
+     *   @desc : 下行消息处理
      *   @auth : TYF
      *   @date : 2019-10-17 - 14:32
      */
-    @RabbitListener(queues="#{downQueue.name}",containerFactory="customContainerFactory")
+    @RabbitListener(queues= AmqpConfig.upQueueName,containerFactory="customContainerFactory")
     public void istPayRealCallbackQueue(Message mes){
 
         try {
-            JSONObject content = toObject(mes.getBody());
-            clientService.msgResp(content);
+            JSONObject obj = toObject(mes.getBody());
+            logger.info("消息内容 "+obj);
         }
         catch (Exception e){
             e.printStackTrace();
-            logger.info("消息异常,下发客户端失败");
+            logger.info("消息异常,上行处理失败");
         }
 
     }

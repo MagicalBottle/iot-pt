@@ -42,8 +42,8 @@ public class ServerUtil {
     *   @date : 2020-03-19 - 16:57
     */
     public void registry(){
-        String addr = IPUtil.getLocalHostIp()+":"+port;
-        String childNode = parentPath+"/"+addr;
+        String nodeName = NodeUtil.getNettyNodeName(port);
+        String childNode = parentPath+"/"+nodeName;
         try {
             zkClient.create()
                     .creatingParentsIfNeeded()
@@ -71,10 +71,10 @@ public class ServerUtil {
             public void run() {
                 try {
                     int count = ClientUtil.getChannelMap().size();
-                    String addr = IPUtil.getLocalHostIp()+":"+port;
-                    String key = clientCountPrefix+addr;
+                    String nodeName = NodeUtil.getNettyNodeName(port);
+                    String key = clientCountPrefix+nodeName;
                     redisUtil.setString(key,String.valueOf(count),expire+5);
-                    logger.info("节点"+addr+"客户端"+count+"个");
+                    logger.info("节点"+nodeName+"客户端"+count+"个");
                 }catch (Exception e){
                     e.printStackTrace();
                     logger.info("客户端数量上报失败");

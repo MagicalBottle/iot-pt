@@ -160,7 +160,7 @@ public class ClientServiceImpl implements ClientService {
     public void clientMsgReSend(JSONObject msg) {
 
         //消息全部推入mq
-        amqpSender.sendMsg(AmqpConfig.exchangeName,AmqpConfig.upQueueName,msg);
+        //amqpSender.sendMsg(AmqpConfig.exchangeName,AmqpConfig.upQueueName,msg);
 
     }
 

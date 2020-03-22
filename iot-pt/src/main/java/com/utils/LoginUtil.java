@@ -30,8 +30,8 @@ public class LoginUtil {
      */
     public void saveLoginInfo(String clientId) {
         String key = loginPrefix+clientId;
-        String value = IPUtil.getLocalHostIp()+":"+port;
-        redisUtil.setString(key,value);
+        String nodeName = NodeUtil.getNettyNodeName(port);
+        redisUtil.setString(key,nodeName);
     }
 
     /**

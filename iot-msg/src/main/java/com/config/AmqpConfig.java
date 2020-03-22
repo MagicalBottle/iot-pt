@@ -1,10 +1,12 @@
 package com.config;
 
 
-import com.utils.NodeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -42,14 +44,12 @@ public class AmqpConfig {
     @Value("${spring.rabbitmq.thread.min}")
     private Integer min;
 
-    @Value("${netty.port}")
-    private int nport;
-
-    @Value("${rabbitmq.msg.down.prefix}")
-    private String channelDownPrefix;
-
 
     public final static String exchangeName = "msg_handler_exchange";
+
+    public final static String downQueueName = "msg_handler_queue_down";
+
+    public final static String upQueueName = "msg_handler_queue_up";
 
 
     //连接配置
@@ -89,14 +89,25 @@ public class AmqpConfig {
         return new DirectExchange(exchangeName);
     }
 
+    //队列(上行消息)
+    @Bean
+    public Queue upQueue(){
+        return new Queue(upQueueName,true);
+    }
+    @Bean
+    public Binding upQueueBind(){
+        return BindingBuilder.bind(upQueue()).to(msgHandlerExchange()).with(upQueueName);
+    }
+
+
     //队列(下行消息)
     @Bean
     public Queue downQueue(){
-        return new Queue(channelDownPrefix+NodeUtil.getNettyNodeName(nport),true);
+        return new Queue(downQueueName,true);
     }
     @Bean
     public Binding downQueueBind(){
-        return BindingBuilder.bind(downQueue()).to(msgHandlerExchange()).with(channelDownPrefix+NodeUtil.getNettyNodeName(nport));
+        return BindingBuilder.bind(downQueue()).to(msgHandlerExchange()).with(downQueueName);
     }
 
 
