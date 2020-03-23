@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+<!--element-ui-->
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"></link>
+<!-- vue -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- element-ui -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>操作提示</title>
+    <style type="text/css">
+        p { height: 100px; text-align: center;
+            transition:height 0.5s, line-height 0.5s;
+        }
+        /*less than 533px, phone_portrait*/
+        @media only screen and (max-width:33.36em){
+            p { height: 250px; line-height: 250px; }
+        }
+        /*from 534px to 767px, phone_landscape*/
+        @media only screen and (min-width:33.37em) and (max-width:47.99em){
+            p { height: 200px; line-height: 200px;  }
+        }
+        /*from 768px to 1199px, pad*/
+        @media only screen and (min-width:48em) and (max-width:74.99em){
+            p { height: 150px; line-height: 150px;  }
+        }
+        /*over 1200px, pc*/
+        @media only screen and (min-width:75em){
+            p { height: 100px; line-height: 100px;}
+        }
+    </style>
+</head>
+<body>
+<div id="msgPage">
+    <!--结果提示-->
+    <el-row>
+        <el-card class="box-card">
+            <div slot="header" class="clearfix">
+                <span><span style="color:#00cc33">{{content}}</span>&nbsp;&nbsp;</span>
+                <el-button style="float: right; padding: 3px 0" type="text">对操作有异议？</el-button>
+            </div>
+            <el-row>
+                <div class="text item">操作结果：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span style="color:#00cc33">{{state}}</span>
+                </div>
+            </el-row>
+            <el-row>
+                <div class="text item">操作提示：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span>{{msg}}</span>
+                </div>
+            </el-row>
+        </el-card>
+    </el-row>
+</div>
+</body>
+</html>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    //vue对象
+    var app = new Vue({
+        el: '#msgPage',
+        data: {
+            msg:'未知',
+            state:'未知',
+            content:'未知',
+        },
+        methods:{
+        },
+        computed:{
+        },
+    });
+    //操作提示
+    var msg = [[${msg}]];
+    //操作结果
+    var state = [[${state}]];
+    //操作内容
+    var content = [[${content}]];
+    //操作成功
+    if(state==1){
+        app.msg=msg;
+        app.state='成功';
+        app.content=content;
+    }
+    //操作失败
+    else{
+        app.msg=msg;
+        app.state='失败';
+        app.content=content;
+    }
+    /*]]>*/
+</script>
