@@ -20,7 +20,7 @@ public class DeviceController {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
-     *   @desc : 获取token,服务器地址
+     *   @desc : 获取节点设备信息
      *   @auth : TYF
      *   @date : 2020/3/16 - 23:43
      */
